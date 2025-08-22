@@ -6,13 +6,14 @@
 #include <regex>
 
 #include "../util/arrays.h" // slice join
+#include "../util/strings.h" // str_slice
 #include "./tokens/headers/lexer_token.h"
 #include "./types/headers/lexer_types.h"
 
 template<typename T>
 struct Lexer {
     std::vector<std::string> input;
-    std::string joined_input = join(input);
+    std::string joined_input;
     std::vector<LexerToken> token_output;
 
     void add_token(const LexerToken& token) {
@@ -29,7 +30,7 @@ struct Lexer {
         if (!currentOpt) return std::nullopt;
         std::string consumed = currentOpt.value();
         input = slice(input, 1);
-        joined_input = slice(joined_input, 1);
+        joined_input = str_slice(joined_input, 1);
         return consumed;
     }
 
@@ -41,6 +42,7 @@ struct Lexer {
 
     void set_input(const std::vector<std::string>& _input) {
         input = _input;
+        joined_input = join(_input);
     }
 
     std::vector<std::string> get_input() const {
@@ -53,7 +55,7 @@ struct Lexer {
             if (!currentOpt) break;
 
             std::string current = currentOpt.value();
-            if (current[0].empty()) {
+            if (current.empty()) {
                 add_token(LexerToken(std::nullopt, LexerTypes.UNEXP())); 
                 /*
 
@@ -83,7 +85,7 @@ struct Lexer {
             struct Identifier {
                 std::string text;
                 std::string type;
-                Identifier(const std::string& _text, const std::string& type) 
+                Identifier(const std::string& _text, const std::string& _type) 
                     : text(_text), type(_type) {}
             };
             
@@ -94,8 +96,6 @@ struct Lexer {
             
             bool matchedIdentifier = false;
             for (auto& id : identifiers) {
-                if (joined_input.substr(0, id.text.size()) != id.text) continue; // skip to next identifier type
-
                 if (joined_input.substr(0, id.text.size()) == id.text) {
                     std::string after_identifier = joined_input.substr(id.text.size());
 
@@ -120,7 +120,7 @@ struct Lexer {
             // capture strings
             if (input[0] == "'" || input[0] == '"') {
                 std::smatch match;
-                std::regex pattern(R"(\"([A-Za-z0-9]+)\"|\'([A-Za-z0-9]+)\')");
+                std::regex pattern(R"(\"(.*?)\"|\'(.*?)\')");
                 
                 if (std::regex_search(joined_input, match, pattern) && match.position(0) == 0) {
                     std::string str;
@@ -132,7 +132,7 @@ struct Lexer {
                     }
 
                     add_token(LexerToken(str, LexerTypes.STRING()));
-                    consume_chars(str.size());
+                    consume_chars(str.size() + 2);
                     continue;
                 }
             }

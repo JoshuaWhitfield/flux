@@ -1,7 +1,9 @@
 #ifndef STRINGS_H
 #define STRINGS_H
 
+#pragma once
 #include <iostream>
+#include <algorithm>
 #include <vector>
 #include <string>
 
@@ -18,6 +20,13 @@ std::vector<std::string> split(const std::string& str, char delimiter) {
 
     result.push_back(str.substr(start)); // last token
     return result;
+}
+
+
+// str_slice: returns a substring of s starting at `start` index and spanning `length` characters
+inline std::string str_slice(const std::string& s, size_t start, size_t length = std::string::npos) {
+    if (start >= s.size()) return "";          // start is past end of string
+    return s.substr(start, std::min(length, s.size() - start));
 }
 
 #endif // STRINGS_H
