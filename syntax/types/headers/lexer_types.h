@@ -88,6 +88,10 @@ struct LexerTypes {
     std::string PROTO() {
         return "PROTOYPE";
     }
+
+    std::string UNEXP() {
+        return "UNEXPECTED";
+    }
 };
 
 #endif // LEXERTYPES_H

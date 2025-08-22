@@ -50,6 +50,19 @@ struct Lexer {
             if (!currentOpt) break;
 
             std::string current = currentOpt.value();
+            if (current[0].empty()) {
+                add_token(LexerToken(std::nullopt, LexerTypes.UNEXP())); 
+                /*
+
+                    before parsing, check if last element 
+                    in output_tokens is Token("UNEXPECTED").
+                    If it is, throw a runtime error early.
+                    error is likely "null value found in script"
+                    if the value is std::nullopt
+                
+                */
+                return std::nullopt;
+            }
 
             // Skip whitespace
             if (std::isspace(current[0])) {
@@ -127,10 +140,25 @@ struct Lexer {
                 }
             }
 
+            // capture integers
+            if (std::isdigit(static_cast<unsigned char>(input[0]))) {
+                std::smatch match; 
+                std::regex pattern(R"(\\d+)");
+
+                if (std::regex_search(join(input), match, pattern) && match.position() == 0) {
+                    int integer;
+
+                    if (!match[1].matched) continue
+                    integer = match[1].str() - '0'; // typecast from string to integer (cpp magic)
+                    add_token(LexerToken(integer, LexerTypes.INTEGER()))
+                    continue
+                }
+            }
+
 
         }
 
-        // End-of-file token
+        // capture end-of-file
         add_token(LexerToken("", TokenTypes.ENDF()));
         return std::nullopt;
     }
