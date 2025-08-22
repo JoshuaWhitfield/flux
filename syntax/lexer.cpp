@@ -143,18 +143,28 @@ struct Lexer {
             // capture integers
             if (std::isdigit(static_cast<unsigned char>(input[0]))) {
                 std::smatch match; 
-                std::regex pattern(R"(\\d+)");
+                std::regex pattern(R"(\d+)");
 
                 if (std::regex_search(join(input), match, pattern) && match.position() == 0) {
-                    int integer;
-
-                    if (!match[1].matched) continue
-                    integer = match[1].str() - '0'; // typecast from string to integer (cpp magic)
-                    add_token(LexerToken(integer, LexerTypes.INTEGER()))
-                    continue
+                    int integer = std::stoi(match[0].str()); // typecast from string to integer
+                    add_token(LexerToken(integer, LexerTypes.INTEGER()));
+                    consume_chars(match.length(0));
+                    continue;
                 }
             }
 
+
+            add_token(LexerToken("", TokenTypes.UNEXP()));
+            break;
+
+            /*
+            
+                if the Token("UNEXPECTED") contains an empty string as
+                a value, then it is a traditional unexpected token. 
+                it is handled variably and dynamically depending on 
+                where is is in the parsing process.
+            
+            */
 
         }
 
