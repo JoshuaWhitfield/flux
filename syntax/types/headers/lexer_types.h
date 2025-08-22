@@ -5,6 +5,10 @@
 #include <string>
 
 struct LexerTypes {
+    std::string COMMA() {
+        return "COMMA";
+    }
+
     std::string ENDL() {
         return "ENDL";
     }
@@ -33,16 +37,28 @@ struct LexerTypes {
         return "FLOAT";
     }
 
-    std::string ARRAY() {
-        return "ARRAY";
+    std::string ARRAY_START() {
+        return "ARRAY_START";
     }
 
-    std::string TUPLE() {
-        return "TUPLE";
+    std::string ARRAY_END() {
+        return "ARRAY_END";
     }
 
-    std::string OBJECT() {
-        return "OBJECT";
+    std::string OBJECT_START() {
+        return "OBJECT_START";
+    }
+
+    std::string OBJECT_END() {
+        return "OBJECT_END";
+    }
+
+    std::string TUPLE_START() {
+        return "TUPLE_START";
+    }
+
+    std::string TUPLE_END() {
+        return "TUPLE_END";
     }
 
     std::string FUNC() {

@@ -71,14 +71,13 @@ struct Lexer {
             }
 
             // Handle newline
-            if (current == "\\n") {
-                add_token(LexerToken("\\n", TokenTypes.ENDL()));
-                consume();
+            if (current == "\\n" || current == ";") {
+                add_token(LexerToken(consume(), TokenTypes.ENDL()));
                 continue;
             }
 
             // Join remaining input once per iteration
-            std::string remaining = join(input);
+            std::string remaining = remaining;
 
             // capture identifiers
             struct Identifier {
@@ -125,7 +124,7 @@ struct Lexer {
                 std::smatch match;
                 std::regex pattern(R"(\"([A-Za-z0-9]+)\"|\'([A-Za-z0-9]+)\')");
                 
-                if (std::regex_search(join(input), match, pattern) && match.position() == 0) {
+                if (std::regex_search(remaining, match, pattern) && match.position() == 0) {
                     std::string str;
                     
                     if (match[1].matched) {
@@ -145,7 +144,7 @@ struct Lexer {
                 std::smatch match; 
                 std::regex pattern(R"(\d+)");
 
-                if (std::regex_search(join(input), match, pattern) && match.position() == 0) {
+                if (std::regex_search(remaining, match, pattern) && match.position() == 0) {
                     int integer = std::stoi(match[0].str()); // typecast from string to integer
                     add_token(LexerToken(integer, LexerTypes.INTEGER()));
                     consume_chars(match.length(0));
@@ -153,11 +152,12 @@ struct Lexer {
                 }
             }
 
+            // capture floating points
             if (std::isdigit(static_cast<unsigned char>(input[0])) || input[0] == ".") {
                 std::smatch match;
                 std::regex pattern(R"(\d*\.\d+)");
 
-                if (std::regex_search(join(input), match, pattern) && match.position() == 0) {
+                if (std::regex_search(remaining, match, pattern) && match.position() == 0) {
                     float floating_pt = std::stof(match[0].str()); // typecast from string to float
                     add_token(LexerToken(floating_pt, LexerTypes.FLOAT()));
                     consume_chars(match.length(0));
@@ -165,6 +165,47 @@ struct Lexer {
                 }
             }
 
+            // capture data structures: array, object, tuple
+            if (input[0] == ",") {
+                add_token(LexerToken(consume(), LexerTypes.COMMA()));
+                continue;
+            }
+
+            if (input[0] == "[") {
+                add_token(LexerToken(consume(), LexerTypes.ARRAY_START()));
+                continue;
+            }
+
+            if (input[0] == "]") {
+                add_token(LexerToken(consume(), LexerTypes.ARRAY_END()));
+                continue;
+            }
+
+            if (input[0] == "{") {
+                add_token(LexerToken(consume(), LexerTypes.OBJECT_START()));
+                continue;
+            }
+
+            if (input[0] == "}") {
+                add_token(LexerToken(consume(), LexerTypes.OBJECT_END()));
+                continue;
+            }
+
+            if (input[0] == "(") {
+                add_token(LexerToken(consume(), LexerTypes.TUPLE_START()));
+                continue;
+            }
+
+            if (input[0] == ")") {
+                add_token(LexerToken(consume(), LexerTypes.TUPLE_END()));
+                continue;
+            }
+
+            // capture standard function
+
+
+
+            // capture standard unexpected
             add_token(LexerToken("", TokenTypes.UNEXP()));
             break;
 
