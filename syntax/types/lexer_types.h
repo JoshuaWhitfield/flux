@@ -61,8 +61,8 @@ struct LexerTypes {
         return "TUPLE";
     }
 
-    std::string MAP() {
-        return "MAP";
+    std::string OBJECT() {
+        return "OBJECT";
     }
 
     std::string FUNC() {
@@ -93,8 +93,16 @@ struct LexerTypes {
         return "METHOD";
     }
 
+    std::string ATTR() {
+        return "ATTR";
+    }
+
     std::string DECL_METHOD() {
         return "DECL_METHOD";
+    }
+
+    std::string CLASS() {
+        return "CLASS";
     }
 };
 
