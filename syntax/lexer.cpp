@@ -12,6 +12,7 @@
 template<typename T>
 struct Lexer {
     std::vector<std::string> input;
+    std::string joined_input = join(input);
     std::vector<LexerToken> token_output;
 
     void add_token(const LexerToken& token) {
@@ -28,12 +29,14 @@ struct Lexer {
         if (!currentOpt) return std::nullopt;
         std::string consumed = currentOpt.value();
         input = slice(input, 1);
+        joined_input = slice(joined_input, 1);
         return consumed;
     }
 
     void consume_chars(size_t n) {
         if (n > input.size()) n = input.size();
         input.erase(input.begin(), input.begin() + n);
+        joined_input.erase(joined_input.begin(), joined_input.begin() + n);
     }
 
     void set_input(const std::vector<std::string>& _input) {
@@ -76,14 +79,11 @@ struct Lexer {
                 continue;
             }
 
-            // Join remaining input once per iteration
-            std::string remaining = remaining;
-
             // capture identifiers
             struct Identifier {
                 std::string text;
                 std::string type;
-                Identifier(std::string& _text, std::string& type) 
+                Identifier(const std::string& _text, const std::string& type) 
                     : text(_text), type(_type) {}
             };
             
@@ -94,15 +94,15 @@ struct Lexer {
             
             bool matchedIdentifier = false;
             for (auto& id : identifiers) {
-                if (remaining.substr(0, id.text.size()) != id.text) continue; // skip to next identifier type
+                if (joined_input.substr(0, id.text.size()) != id.text) continue; // skip to next identifier type
 
-                if (remaining.substr(0, id.text.size()) == id.text) {
-                    std::string after_identifier = remaining.substr(id.text.size());
+                if (joined_input.substr(0, id.text.size()) == id.text) {
+                    std::string after_identifier = joined_input.substr(id.text.size());
 
                     std::regex pattern(R"(([A-Za-z][A-Za-z0-9]*))");
                     std::smatch match;
 
-                    if (std::regex_search(after_identifier, match, pattern) && match.position() == 0) {
+                    if (std::regex_search(after_identifier, match, pattern) && match.position(0) == 0) {
                         std::string identifier = match[1];
                         add_token(LexerToken(identifier, id.type));
 
@@ -122,7 +122,7 @@ struct Lexer {
                 std::smatch match;
                 std::regex pattern(R"(\"([A-Za-z0-9]+)\"|\'([A-Za-z0-9]+)\')");
                 
-                if (std::regex_search(remaining, match, pattern) && match.position() == 0) {
+                if (std::regex_search(joined_input, match, pattern) && match.position(0) == 0) {
                     std::string str;
                     
                     if (match[1].matched) {
@@ -136,28 +136,28 @@ struct Lexer {
                     continue;
                 }
             }
+            
+            // capture floating points
+            if (std::isdigit(static_cast<unsigned char>(input[0])) || input[0] == ".") {
+                std::smatch match;
+                std::regex pattern(R"(\d*\.\d+)");
+
+                if (std::regex_search(joined_input, match, pattern) && match.position(0) == 0) {
+                    float floating_pt = std::stof(match[0].str()); // typecast from string to float
+                    add_token(LexerToken(floating_pt, LexerTypes.FLOAT()));
+                    consume_chars(match.length(0));
+                    continue;
+                }
+            }
 
             // capture integers
             if (std::isdigit(static_cast<unsigned char>(input[0]))) {
                 std::smatch match; 
                 std::regex pattern(R"(\d+)");
 
-                if (std::regex_search(remaining, match, pattern) && match.position() == 0) {
+                if (std::regex_search(joined_input, match, pattern) && match.position(0) == 0) {
                     int integer = std::stoi(match[0].str()); // typecast from string to integer
                     add_token(LexerToken(integer, LexerTypes.INTEGER()));
-                    consume_chars(match.length(0));
-                    continue;
-                }
-            }
-
-            // capture floating points
-            if (std::isdigit(static_cast<unsigned char>(input[0])) || input[0] == ".") {
-                std::smatch match;
-                std::regex pattern(R"(\d*\.\d+)");
-
-                if (std::regex_search(remaining, match, pattern) && match.position() == 0) {
-                    float floating_pt = std::stof(match[0].str()); // typecast from string to float
-                    add_token(LexerToken(floating_pt, LexerTypes.FLOAT()));
                     consume_chars(match.length(0));
                     continue;
                 }
@@ -203,7 +203,7 @@ struct Lexer {
             struct Function {
                 std::string text;
                 std::string type;
-                Function(std::string& _text, std::string& _type)
+                Function(const std::string& _text, const std::string& _type)
                     : text(_text), type(_type) {}
             }
 
@@ -214,16 +214,16 @@ struct Lexer {
 
             bool matchedFunction = false;
             for (auto& fn : functions) {
-                if (remaining.substr(0, fn.text.size()) != fn.text) continue; // skip to next function type
+                if (joined_input.substr(0, fn.text.size()) != fn.text) continue; // skip to next function type
 
-                if (remaining.substr(0, fn.text.size()) == fn.text) {
+                if (joined_input.substr(0, fn.text.size()) == fn.text) {
                     if (fn.text == "func ") {
-                        std::string after_std_func = remaining.substr(fn.text.size());
+                        std::string after_std_func = joined_input.substr(fn.text.size());
 
                         std::regex pattern(R"(([A-Za-z][A-Za-z0-9]*))");
                         std::smatch match;
 
-                        if (std::regex_search(after_std_func, match, pattern) && match.position == 0){
+                        if (std::regex_search(after_std_func, match, pattern) && match.position(0) == 0){
                             std::string function = match[1];
                             add_token(LexerToken(function, fn.type));
 
@@ -234,13 +234,12 @@ struct Lexer {
                         }
                     }
 
-                    add_token(LexerToken("", fn.type));
+                    add_token(LexerToken(fn.text, fn.type));
+                    matchedFunction = true;
                     break; // anon function type handled, move to next iteration
                 }
-
-
-
             }
+
             if (matchedFunction) continue;
 
             // capture standard unexpected
