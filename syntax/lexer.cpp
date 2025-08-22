@@ -92,11 +92,9 @@ struct Lexer {
                 Identifier("let ", TokenTypes.LET())
             };
             
-            bool matchedKeyword = false;
+            bool matchedIdentifier = false;
             for (auto& id : identifiers) {
-                if (remaining.substr(0, id.text.size()) != id.text) {
-                    continue; // skip to next identifier
-                }
+                if (remaining.substr(0, id.text.size()) != id.text) continue; // skip to next identifier type
 
                 if (remaining.substr(0, id.text.size()) == id.text) {
                     std::string after_identifier = remaining.substr(id.text.size());
@@ -106,13 +104,13 @@ struct Lexer {
 
                     if (std::regex_search(after_identifier, match, pattern) && match.position() == 0) {
                         std::string identifier = match[1];
-                        add_token(TokenTypes(identifier, id.type));
+                        add_token(LexerToken(identifier, id.type));
 
                         size_t total_matched = id.text.size() + match.length(0);
                         consume_chars(total_matched);
 
                         matchedIdentifier = true;
-                        break; // identifier handled, move to next iteration
+                        break; // identifier type handled, move to next iteration
                     }
                 }
             }
@@ -202,8 +200,48 @@ struct Lexer {
             }
 
             // capture standard function
+            struct Function {
+                std::string text;
+                std::string type;
+                Function(std::string& _text, std::string& _type)
+                    : text(_text), type(_type) {}
+            }
+
+            std::vector<Function> functions = {
+                Function("func ", TokenTypes.FUNC()),
+                Function("=>", TokenTypes.ANON_FUNC())
+            }
+
+            bool matchedFunction = false;
+            for (auto& fn : functions) {
+                if (remaining.substr(0, fn.text.size()) != fn.text) continue; // skip to next function type
+
+                if (remaining.substr(0, fn.text.size()) == fn.text) {
+                    if (fn.text == "func ") {
+                        std::string after_std_func = remaining.substr(fn.text.size());
+
+                        std::regex pattern(R"(([A-Za-z][A-Za-z0-9]*))");
+                        std::smatch match;
+
+                        if (std::regex_search(after_std_func, match, pattern) && match.position == 0){
+                            std::string function = match[1];
+                            add_token(LexerToken(function, fn.type));
+
+                            size_t total_matched = fn.text.size() + match.length(0);
+                            consume_chars(total_matched);
+                            matchedFunction = true;
+                            break; // standard function type handled, move to next iteration
+                        }
+                    }
+
+                    add_token(LexerToken("", fn.type));
+                    break; // anon function type handled, move to next iteration
+                }
 
 
+
+            }
+            if (matchedFunction) continue;
 
             // capture standard unexpected
             add_token(LexerToken("", TokenTypes.UNEXP()));

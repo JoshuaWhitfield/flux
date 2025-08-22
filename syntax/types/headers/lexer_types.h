@@ -9,6 +9,10 @@ struct LexerTypes {
         return "COMMA";
     }
 
+    std::string REF() {
+        return "REF";
+    }
+
     std::string ENDL() {
         return "ENDL";
     }
@@ -85,13 +89,17 @@ struct LexerTypes {
         return "OPERATOR";
     }
 
-    std::string METHOD() {
-        return "METHOD";
+    std::string CHILD() {
+        return "CHILD";
     }
 
-    std::string ATTR() {
-        return "ATTR";
-    }
+    // std::string METHOD() {
+    //     return "METHOD";
+    // }
+
+    // std::string ATTR() {
+    //     return "ATTR";
+    // }
 
     std::string DECL_METHOD() {
         return "DECL_METHOD";
