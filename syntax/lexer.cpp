@@ -10,20 +10,11 @@
 #include "./types/headers/lexer_types.h"
 
 template<typename T>
-
-/* 
-
-    tokenize() will return a LexerToken value when there is an 
-    unexpected value. this will allow us to throw errors down 
-    the line.
-
-*/
-
 struct Lexer {
     std::vector<std::string> input;
     std::vector<LexerToken> token_output;
 
-    void add_token(LexerToken token) {
+    void add_token(const LexerToken& token) {
         token_output.push_back(token);
     }
 
@@ -31,72 +22,96 @@ struct Lexer {
         if (input.empty()) return std::nullopt;
         return input[0];
     }
-    
+
     std::optional<std::string> consume() {
-        std::string current = get_current();
-        if (!current) return std::nullopt;
-        std::string consumed = current.value();
+        auto currentOpt = get_current();
+        if (!currentOpt) return std::nullopt;
+        std::string consumed = currentOpt.value();
         input = slice(input, 1);
         return consumed;
     }
 
-    void consume_chars(std::vector<std::string>& input, size_t n) {
+    void consume_chars(size_t n) {
         if (n > input.size()) n = input.size();
         input.erase(input.begin(), input.begin() + n);
     }
 
-    void set_input(std::vector<std::string> _input) {
+    void set_input(const std::vector<std::string>& _input) {
         input = _input;
     }
 
-    std::vector<std::string> get_input() {
+    std::vector<std::string> get_input() const {
         return input;
     }
 
     std::optional<LexerToken> tokenize() {
-        while (get_current()) {
-            if (std::isspace(get_current().value())) {
+        while (!input.empty()) {
+            auto currentOpt = get_current();
+            if (!currentOpt) break;
+
+            std::string current = currentOpt.value();
+
+            // Skip whitespace
+            if (std::isspace(current[0])) {
                 consume();
-                return tokenize();
+                continue;
             }
 
-            if (get_current().value() == "\\n") {
+            // Handle newline
+            if (current == "\\n") {
                 add_token(LexerToken("\\n", TokenTypes.ENDL()));
                 consume();
-                return tokenize();
+                continue;
             }
+
+            // Join remaining input once per iteration
+            std::string remaining = join(input);
+
+            // Keyword definitions
+            struct Keyword {
+                std::string text;
+                std::string type;
+                Keyword(std::string& _text, std::string& type) 
+                    : text(_text), type(_type) {}
+            };
+
+            std::vector<Keyword> keywords = {
+                Keyword("const ", TokenTypes.CONST()),
+                Keyword("let ", TokenTypes.LET())
+            };
+
+            bool matchedKeyword = false;
+            for (auto& kw : keywords) {
+                if (remaining.substr(0, kw.text.size()) != kw.text) {
+                    continue; // skip to next keyword
+                }
+
+                if (remaining.substr(0, kw.text.size()) == kw.text) {
+                    std::string after_keyword = remaining.substr(kw.text.size());
+
+                    std::regex pattern(R"(\s*([A-Za-z][A-Za-z0-9]*))");
+                    std::smatch match;
+
+                    if (std::regex_search(after_keyword, match, pattern) && match.position() == 0) {
+                        std::string identifier = match[1];
+                        add_token(TokenTypes(identifier, kw.type));
+
+                        size_t total_matched = kw.text.size() + match.length(0);
+                        consume_chars(total_matched);
+
+                        matchedKeyword = true;
+                        break; // keyword handled, move to next iteration
+                    }
+                }
+            }
+
+            if (matchedKeyword) continue;
+
             
-            std::string keyword = "const ";
-            if (join(input).substr(0, keyword.size()) == keyword) {
-                std::smatch match;
-                std::regex pattern(R"(\s*([A-Za-z][A-Za-z0-9]*))");
-                std::string after_keyword = join(input).substr(keyword.size());
-
-                if (std::regex_search(after_keyword, match, pattern) && match.position() == 0) {
-                    std::string identifier = match[1];
-                    add_token(TokenTypes(identifier, TokenTypes.CONST()));
-                    size_t total_matched = keyword.size() + match.length(0);
-                    consume_chars(input, total_matched);
-                }    
-            }
-
-            std::string keyword = "let ";
-            if (join(input).substr(0, keyword.size()) == keyword) {
-                std::smatch match;
-                std::regex pattern(R"(\s*([A-Za-z][A-Za-z0-9]*))");
-                std::string after_keyword = join(input).substr(keyword.size());
-
-                if (std::regex_search(after_keyword, match, pattern) && match.position() == 0) {
-                    std::string identifier = match[1];
-                    add_token(TokenTypes(identifier, TokenTypes.CONST()));
-                    size_t total_matched = keyword.size() + match.length(0);
-                    consume_chars(input, total_matched);
-                }    
-            }
-
-            add_token(LexerToken("", TokenTypes.ENDF()));
-            return std::nullopt;
         }
-    } 
 
+        // End-of-file token
+        add_token(LexerToken("", TokenTypes.ENDF()));
+        return std::nullopt;
+    }
 };
