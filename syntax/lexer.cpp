@@ -5,10 +5,11 @@
 #include "../util/arrays.h" // slice
 #include "./headers/lexer_token.h"
 
+template<typename T>
+
 struct Lexer {
     std::vector<std::string> input;
     std::vector<LexerToken> token_output;
-    template<typename T>
 
     void add_token(LexerToken token) {
         token_output.push(token);
