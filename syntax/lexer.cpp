@@ -153,6 +153,17 @@ struct Lexer {
                 }
             }
 
+            if (std::isdigit(static_cast<unsigned char>(input[0])) || input[0] == ".") {
+                std::smatch match;
+                std::regex pattern(R"(\d*\.\d+)");
+
+                if (std::regex_search(join(input), match, pattern) && match.position() == 0) {
+                    float floating_pt = std::stof(match[0].str()); // typecast from string to float
+                    add_token(LexerToken(floating_pt, LexerTypes.FLOAT()));
+                    consume_chars(match.length(0));
+                    continue;
+                }
+            }
 
             add_token(LexerToken("", TokenTypes.UNEXP()));
             break;
