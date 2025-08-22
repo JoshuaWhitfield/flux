@@ -251,7 +251,7 @@ struct Lexer {
                 if the Token("UNEXPECTED") contains an empty string as
                 a value, then it is a traditional unexpected token. 
                 it is handled variably and dynamically depending on 
-                where is is in the parsing process.
+                where it is in the parsing process.
             
             */
 
