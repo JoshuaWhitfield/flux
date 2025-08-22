@@ -84,6 +84,10 @@ struct LexerTypes {
     std::string CLASS() {
         return "CLASS";
     }
+
+    std::string PROTO() {
+        return "PROTOYPE";
+    }
 };
 
 #endif // LEXERTYPES_H

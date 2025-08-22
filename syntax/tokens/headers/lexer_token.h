@@ -3,6 +3,7 @@
 
 #include <string>
 
+
 struct LexerToken {
     std::string value;
     std::string type;

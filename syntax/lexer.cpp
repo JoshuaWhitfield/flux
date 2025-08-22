@@ -67,47 +67,67 @@ struct Lexer {
             // Join remaining input once per iteration
             std::string remaining = join(input);
 
-            // Keyword definitions
-            struct Keyword {
+            // capture identifiers
+            struct Identifier {
                 std::string text;
                 std::string type;
-                Keyword(std::string& _text, std::string& type) 
+                Identifier(std::string& _text, std::string& type) 
                     : text(_text), type(_type) {}
             };
-
-            std::vector<Keyword> keywords = {
-                Keyword("const ", TokenTypes.CONST()),
-                Keyword("let ", TokenTypes.LET())
+            
+            std::vector<Identifier> identifiers = {
+                Identifier("const ", TokenTypes.CONST()),
+                Identifier("let ", TokenTypes.LET())
             };
-
+            
             bool matchedKeyword = false;
-            for (auto& kw : keywords) {
-                if (remaining.substr(0, kw.text.size()) != kw.text) {
-                    continue; // skip to next keyword
+            for (auto& id : identifiers) {
+                if (remaining.substr(0, id.text.size()) != id.text) {
+                    continue; // skip to next identifier
                 }
 
-                if (remaining.substr(0, kw.text.size()) == kw.text) {
-                    std::string after_keyword = remaining.substr(kw.text.size());
+                if (remaining.substr(0, id.text.size()) == id.text) {
+                    std::string after_identifier = remaining.substr(id.text.size());
 
-                    std::regex pattern(R"(\s*([A-Za-z][A-Za-z0-9]*))");
+                    std::regex pattern(R"(([A-Za-z][A-Za-z0-9]*))");
                     std::smatch match;
 
-                    if (std::regex_search(after_keyword, match, pattern) && match.position() == 0) {
+                    if (std::regex_search(after_identifier, match, pattern) && match.position() == 0) {
                         std::string identifier = match[1];
-                        add_token(TokenTypes(identifier, kw.type));
+                        add_token(TokenTypes(identifier, id.type));
 
-                        size_t total_matched = kw.text.size() + match.length(0);
+                        size_t total_matched = id.text.size() + match.length(0);
                         consume_chars(total_matched);
 
-                        matchedKeyword = true;
-                        break; // keyword handled, move to next iteration
+                        matchedIdentifier = true;
+                        break; // identifier handled, move to next iteration
                     }
                 }
             }
 
-            if (matchedKeyword) continue;
+            if (matchedIdentifier) continue;
 
-            
+            // capture strings
+            if (input[0] == "'" || input[0] == '"') {
+                std::smatch match;
+                std::regex pattern(R"(\"([A-Za-z0-9]+)\"|\'([A-Za-z0-9]+)\')");
+                
+                if (std::regex_search(join(input), match, pattern) && match.position() == 0) {
+                    std::string str;
+                    
+                    if (match[1].matched) {
+                        str = match[1].str();
+                    } else if (match[2].matched) {
+                        str = match[2].str();
+                    }
+
+                    add_token(LexerToken(str, LexerTypes.STRING()));
+                    consume_chars(str.size());
+                    continue;
+                }
+            }
+
+
         }
 
         // End-of-file token
