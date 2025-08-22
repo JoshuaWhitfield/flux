@@ -1,3 +1,6 @@
+#ifndef LEXERTYPES_H
+#define LEXERTYPES_H
+
 #include <iostream>
 #include <string>
 
@@ -38,13 +41,61 @@ struct LexerTypes {
         */
     }
 
-    std::string
+    std::string STRING() {
+        return "STRING";
+    }
 
-    std::string
+    std::string INTEGER() {
+        return "INTEGER";
+    }
 
-    std::string
+    std::string FLOAT() {
+        return "FLOAT";
+    }
 
-    std::string
+    std::string ARRAY() {
+        return "ARRAY";
+    }
 
-    std::string
+    std::string TUPLE() {
+        return "TUPLE";
+    }
+
+    std::string MAP() {
+        return "MAP";
+    }
+
+    std::string FUNC() {
+        return "FUNC";
+    }
+
+    std::string ANON_FUNC() {
+        return "ANON_FUNC";
+    }
+
+    std::string KEYWORD() {
+        return "KEYWORD";
+    }
+
+    std::string DECL() {
+        return "DECL";
+    }
+
+    std::string SELECTOR() {
+        return "SELECTOR";
+    }
+
+    std::string OPERATOR() {
+        return "OPERATOR";
+    }
+
+    std::string METHOD() {
+        return "METHOD";
+    }
+
+    std::string DECL_METHOD() {
+        return "DECL_METHOD";
+    }
 };
+
+#endif // LEXERTYPES_H
