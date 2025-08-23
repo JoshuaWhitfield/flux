@@ -94,7 +94,7 @@ struct Lexer {
                 Identifier("let ", TokenTypes.LET())
             };
             
-            bool matchedIdentifier = false;
+            bool matched_identifier = false;
             for (auto& id : identifiers) {
                 if (joined_input.substr(0, id.text.size()) == id.text) {
                     std::string after_identifier = joined_input.substr(id.text.size());
@@ -109,13 +109,13 @@ struct Lexer {
                         size_t total_matched = id.text.size() + match.length(0);
                         consume_chars(total_matched);
 
-                        matchedIdentifier = true;
+                        matched_identifier = true;
                         break; // identifier type handled, move to next iteration
                     }
                 }
             }
 
-            if (matchedIdentifier) continue;
+            if (matched_identifier) continue;
 
             // capture strings
             if (input[0] == "'" || input[0] == '"') {
@@ -212,7 +212,7 @@ struct Lexer {
                 Function("=>", TokenTypes.ANON_FUNC())
             }
 
-            bool matchedFunction = false;
+            bool matched_function = false;
             for (auto& fn : functions) {
                 if (joined_input.substr(0, fn.text.size()) != fn.text) continue; // skip to next function type
 
@@ -229,18 +229,83 @@ struct Lexer {
 
                             size_t total_matched = fn.text.size() + match.length(0);
                             consume_chars(total_matched);
-                            matchedFunction = true;
+                            matched_function = true;
                             break; // standard function type handled, move to next iteration
                         }
                     }
 
                     add_token(LexerToken(fn.text, fn.type));
-                    matchedFunction = true;
+                    matched_function = true;
                     break; // anon function type handled, move to next iteration
                 }
             }
 
             if (matchedFunction) continue;
+
+            // capture keywords
+            struct Keyword {
+                std::string text;
+                std::string type;
+
+                Keyword(const std::string& _text, const std::string& _type)
+                    : text(_text), type(_type) {}
+            };
+
+            std::vector<Keyword> keywords = {
+                Keyword("return", LexerTypes.KEYWORD()),
+                Keyword("case", LexerTypes.KEYWORD()),
+                Keyword("concede", LexerTypes.KEYWORD()),
+                Keyword("default", LexerTypes.KEYWORD()),
+            }
+
+            bool mathed_keyword = false;
+            for (auto& kw : keywords) {
+                if (joined_input.substr(0, kw.text.size()) == kw.text) {
+                    // check that next char is a boundary
+                    char next_char = joined_input[kw.text.size()];
+                    if (std::isspace(next_char) || next_char == '(' || next_char == ';' || nextChar == '\0') {
+                        add_token(LexerToken(kw.text, kw.type));
+                        consume_chars(kw.text.size());
+                        mathed_keyword = true;
+                        break; // keyword matched
+                    }
+                }
+            }
+
+            if (mathed_keyword) continue;
+
+            // capture core functions
+            struct CoreFunction {
+                std::string text;
+                std::string type;
+
+                CoreFunction(const std::string& _text, const std::string& _type)
+                    : text(_text), type(_type) {}
+            };
+            
+            std::vector<CoreFunction> core_functions = {
+                CoreFunction("print", LexerTypes.CORE_FUNC()),
+                CoreFunction("input", LexerTypes.CORE_FUNC()),
+                CoreFunction("len", LexerTypes.CORE_FUNC()),
+                CoreFunction("type", LexerTypes.CORE_FUNC()),
+                CoreFunction("panic", LexerTypes.CORE_FUNC())
+            }
+
+            bool matched_core_func = false;
+            for (auto& cf : core_functions) {
+                if (joined_input.substr(0, cf.text.size()) == cf.text) {
+                    // ensure next char is boundary
+                    char next_char = joined_input[cf.text.size()];
+                    if (std::isspace(next_char) || next_char == "(" || next_char == ";" || next_char == "\0" || next_char == "\n") {
+                        add_token(LexerToken(cf.text, cf.type));
+                        consume_chars(cf.text.size());
+                        matched_core_func = true;
+                        break;
+                    }
+                }
+            }
+
+            if (matched_core_func) continue;
 
             // capture standard unexpected
             add_token(LexerToken("", TokenTypes.UNEXP()));

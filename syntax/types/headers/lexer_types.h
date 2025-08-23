@@ -73,8 +73,12 @@ struct LexerTypes {
         return "ANON_FUNC";
     }
 
-    std::string KEYWORD() {
+    std::string KEYWORD() { // return, case, concede, default
         return "KEYWORD";
+    }
+
+    std::string CORE_FUNC() { // print, input, len, type, panic
+        return "CORE_FUNC";
     }
 
     std::string DECL() {
