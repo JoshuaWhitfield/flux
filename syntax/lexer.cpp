@@ -99,7 +99,7 @@ struct Lexer {
                 if (joined_input.substr(0, id.text.size()) == id.text) {
                     std::string after_identifier = joined_input.substr(id.text.size());
 
-                    std::regex pattern(R"(([A-Za-z][A-Za-z0-9]*))");
+                    std::regex pattern(R"(([A-Za-z_][A-Za-z0-9_]*))");
                     std::smatch match;
 
                     if (std::regex_search(after_identifier, match, pattern) && match.position(0) == 0) {
@@ -220,7 +220,7 @@ struct Lexer {
                     if (fn.text == "func ") {
                         std::string after_std_func = joined_input.substr(fn.text.size());
 
-                        std::regex pattern(R"(([A-Za-z][A-Za-z0-9]*))");
+                        std::regex pattern(R"(([A-Za-z_][A-Za-z0-9_]*))");
                         std::smatch match;
 
                         if (std::regex_search(after_std_func, match, pattern) && match.position(0) == 0){
@@ -263,7 +263,7 @@ struct Lexer {
                 if (joined_input.substr(0, kw.text.size()) == kw.text) {
                     // check that next char is a boundary
                     char next_char = joined_input[kw.text.size()];
-                    if (std::isspace(next_char) || next_char == '(' || next_char == ';' || nextChar == '\0') {
+                    if (std::isspace(next_char) || next_char == '(' || next_char == ';' || next_char == '\0' || next_char -- "\n") {
                         add_token(LexerToken(kw.text, kw.type));
                         consume_chars(kw.text.size());
                         matched_keyword = true;
@@ -306,6 +306,108 @@ struct Lexer {
             }
 
             if (matched_core_func) continue;
+
+            // capture declaratives
+            struct Declarative {
+                std::string text;
+                std::string type;
+
+                Declarative(const std::string& _text, const std::string& _type)
+                    : text(_text), type(_type) {}
+            };
+
+            std::vector<Declarative> declaratives = {
+                Declarative("fif",      LexerTypes.DECL()),
+                Declarative("fwhile",   LexerTypes.DECL()),
+                Declarative("feq",      LexerTypes.DECL()),
+                Declarative("fgeq",     LexerTypes.DECL()),
+                Declarative("fleq",     LexerTypes.DECL()),
+                Declarative("bincase",  LexerTypes.DECL()),
+                Declarative("fgt",      LexerTypes.DECL()),
+                Declarative("flt",      LexerTypes.DECL()),
+                Declarative("concat",   LexerTypes.DECL())
+            };
+
+            bool matched_declarative = false;
+            for (auto& dec : declaratives) {
+                if (joined_input.substr(0, dec.text.size()) == dec.text) {
+                    char next_char = joined_input[dec.text.size()];
+                    if (std::isspace(next_char) || next_char == '(' || next_char == ';' || next_char == '\0' || next_char -- "\n") {
+                        add_token(LexerToken(dec.text, dec.type));
+                        consume_chars(dec.text.size());
+                        matched_declarative = true;
+                        break;
+                    }
+                }
+            }
+
+            if (matched_declarative) continue;
+
+            // capture declarative methods
+            struct DeclarativeMethod {
+                std::string text;
+                std::string type;
+
+                DeclarativeMethod(const std::string& _text, const std::string& _type)
+                    : text(_text), type(_type) {}
+            };
+
+            std::vector<DeclarativeMethod> declarativeMethods = {
+                DeclarativeMethod(".ffor",   LexerTypes.DECLARATIVE_METHOD()),
+                DeclarativeMethod(".concat", LexerTypes.DECLARATIVE_METHOD())
+            };
+
+            bool matched_declarative_method = false;
+            for (auto& dm : declarativeMethods) {
+                if (joined_input.substr(0, dm.text.size()) == dm.text) {
+                    char next_char = joined_input[dm.text.size()];
+                    if (std::isspace(next_char) || next_char == "(" || next_char == ";" || next_char == "\0" || next_char == "\n") {
+                        add_token(LexerToken(dm.text, dm.type));
+                        consume_chars(dm.text.size());
+                        matched_declarative_method = true;
+                        break;
+                    }
+                }
+            }
+
+            if (matched_declarative_method) continue;
+
+            // capture selectors
+            struct Selector {
+                std::string text;
+                std::string type;
+
+                Selector(const std::string& _text, const std::string& _type)
+                    : text(_text), type(_type) {}
+            };
+
+            std::vector<Selector> selectors = {
+                Selector("and", LexerTypes.SELECTOR()),
+                Selector("or",  LexerTypes.SELECTOR()),
+                Selector("xor", LexerTypes.SELECTOR())
+            };
+
+            bool matched_selector = false;
+            for (auto& sel : selectors) {
+                if (joined_input.substr(0, sel.text.size()) == sel.text) {
+                    char nextChar = joined_input[sel.text.size()];
+                    if (std::isspace(next_char) || next_char == "(" || next_char == ";" || next_char == "\0" || next_char == "\n") {
+                        add_token(LexerToken(sel.text, sel.type));
+                        consume_chars(sel.text.size());
+                        matched_selector = true;
+                        break;
+                    }
+                }
+            }
+
+            if (matched_selector) continue;
+
+            std:smatch selector_match;
+            std::regex selector_pattern(R"(.[A-Za-z0-9]_)");
+            
+            if (input[0] == "." && std::regex_search(joined_input, selector_match, selector_pattern)) {
+                
+            }
 
             // capture standard unexpected
             add_token(LexerToken("", TokenTypes.UNEXP()));

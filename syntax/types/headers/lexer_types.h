@@ -85,6 +85,10 @@ struct LexerTypes {
         return "DECL";
     }
 
+    std::string DECL_METHOD() {
+        return "DECL_METHOD";
+    }
+    
     std::string SELECTOR() {
         return "SELECTOR";
     }
@@ -104,10 +108,6 @@ struct LexerTypes {
     // std::string ATTR() {
     //     return "ATTR";
     // }
-
-    std::string DECL_METHOD() {
-        return "DECL_METHOD";
-    }
 
     std::string CLASS() {
         return "CLASS";
