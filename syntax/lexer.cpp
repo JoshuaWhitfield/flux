@@ -258,7 +258,7 @@ struct Lexer {
                 Keyword("default", LexerTypes.KEYWORD()),
             }
 
-            bool mathed_keyword = false;
+            bool matched_keyword = false;
             for (auto& kw : keywords) {
                 if (joined_input.substr(0, kw.text.size()) == kw.text) {
                     // check that next char is a boundary
@@ -266,13 +266,13 @@ struct Lexer {
                     if (std::isspace(next_char) || next_char == '(' || next_char == ';' || nextChar == '\0') {
                         add_token(LexerToken(kw.text, kw.type));
                         consume_chars(kw.text.size());
-                        mathed_keyword = true;
+                        matched_keyword = true;
                         break; // keyword matched
                     }
                 }
             }
 
-            if (mathed_keyword) continue;
+            if (matched_keyword) continue;
 
             // capture core functions
             struct CoreFunction {
