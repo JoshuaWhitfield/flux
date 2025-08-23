@@ -402,12 +402,34 @@ struct Lexer {
 
             if (matched_selector) continue;
 
-            std:smatch selector_match;
-            std::regex selector_pattern(R"(.[A-Za-z0-9]_)");
-            
-            if (input[0] == "." && std::regex_search(joined_input, selector_match, selector_pattern)) {
-                
+            struct Selector {
+                std::string text;
+                std::string type;
+
+                Selector(const std::string& _text, const std::string& _type)
+                    : text(_text), type(_type) {}
+            };
+
+            std::vector<Selector> selectors = {
+                Selector("or", LexerTypes.SELECTOR()),
+                Selector("and", LexerTypes.SELECTOR()),
+                Selector("xor", LexerTypes.SELECTOR()),
             }
+
+            bool matched_selector = false;
+            for (auto& sel : selectors) {
+                if (joined_input.substr(0, sel.text.size()) == sel.text) {
+                    char next_char = joined_input[sel.text.size()];
+                    if (std::isspace(next_char) || next_char == "(" || next_char == ";" || next_char == "\0" || next_char == "\n") {
+                        add_token(LexerToken(sel.text, sel.type));
+                        consume_chars(sel.text.size());
+                        matched_selector = true;
+                        break;
+                    }
+                }
+            }
+
+            if (matched_selector) continue;
 
             // capture standard unexpected
             add_token(LexerToken("", TokenTypes.UNEXP()));
