@@ -1,6 +1,3 @@
-#ifndef LEXERTYPES_H
-#define LEXERTYPES_H
-
 #include <iostream>
 #include <string>
 
@@ -126,5 +123,3 @@ struct LexerTypes {
         return "UNEXPECTED";
     }
 };
-
-#endif // LEXERTYPES_H

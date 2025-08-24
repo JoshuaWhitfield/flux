@@ -29,4 +29,11 @@ inline std::string str_slice(const std::string& s, size_t start, size_t length =
     return s.substr(start, std::min(length, s.size() - start));
 }
 
+// check if string is aplha only
+bool is_alpha(const std::string& str) {
+    return !str.empty() && std::all_of(str.begin(), str.end(), [](unsigned char c) {
+        return std::isalpha(c);
+    });
+}
+
 #endif // STRINGS_H

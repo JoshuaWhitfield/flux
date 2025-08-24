@@ -1,6 +1,3 @@
-#ifndef LEXERTOKEN_H
-#define LEXERTOKEN_H 
-
 #include <iostream>
 #include <string>
 
@@ -20,5 +17,3 @@ struct LexerToken {
         return type;
     }
 };
-
-#endif // LEXERTOKEN_H

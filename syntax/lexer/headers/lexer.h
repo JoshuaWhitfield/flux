@@ -1,3 +1,6 @@
+#ifndef LEXER_H
+#define LEXER_H
+
 #include <iostream>
 #include <vector>
 #include <string>
@@ -5,10 +8,33 @@
 #include <cctype>
 #include <regex>
 
-#include "../util/arrays.h" // slice join
-#include "../util/strings.h" // str_slice
-#include "./tokens/headers/lexer_token.h"
-#include "./types/headers/lexer_types.h"
+#include "../../util/arrays.h" // slice join
+#include "../../util/strings.h" // str_slice is_alpha
+#include "../tokens/headers/lexer_token.h"
+#include "../types/headers/lexer_types.h"
+
+template<typename T>
+bool match_object(
+    const std::vector<T>& objects, 
+    std::string& joined_input, 
+    std::vector<LexerToken>& token_output, 
+    std::function<void(size_t)> consume_chars
+) {
+    for (auto& obj : objects) {
+        if (joined_input.substr(0, text.size()) == text) {
+            char next_char = joined_input[text.size()];
+            if (std::isspace(next_char) || next_char == "(" || 
+                next_char == ";" || next_char == "\0" || next_char == "\n"
+            ) {
+                token_output.push_back(LexerToken(obj.text, obj.type));
+                consume_chars(obj.text.size());
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 
 template<typename T>
 struct Lexer {
@@ -116,6 +142,19 @@ struct Lexer {
             }
 
             if (matched_identifier) continue;
+
+            // capture namespaces
+            if (std::isalpha(static_cast<unsigned char>(input[0]))) {
+                std::smatch match;
+                std::regex pattern(R"(&?[A-Za-z_][A-Za-z0-9_]*)");
+
+                if (std::regex_search(joined_input, match, pattern) && match.position(0) == 0) {
+                    std::string ns_name = match[0].str();
+                    add_token(LexerToken(ns_name, LexerTypes.NAMESPACE()));
+                    consume_chars(ns_name.size());
+                    continue;
+                }
+            }
 
             // capture strings
             if (input[0] == "'" || input[0] == '"') {
@@ -252,27 +291,18 @@ struct Lexer {
             };
 
             std::vector<Keyword> keywords = {
-                Keyword("return", LexerTypes.KEYWORD()),
-                Keyword("case", LexerTypes.KEYWORD()),
+                Keyword("return",  LexerTypes.KEYWORD()),
+                Keyword("case",    LexerTypes.KEYWORD()),
                 Keyword("concede", LexerTypes.KEYWORD()),
                 Keyword("default", LexerTypes.KEYWORD()),
             }
 
-            bool matched_keyword = false;
-            for (auto& kw : keywords) {
-                if (joined_input.substr(0, kw.text.size()) == kw.text) {
-                    // check that next char is a boundary
-                    char next_char = joined_input[kw.text.size()];
-                    if (std::isspace(next_char) || next_char == '(' || next_char == ';' || next_char == '\0' || next_char -- "\n") {
-                        add_token(LexerToken(kw.text, kw.type));
-                        consume_chars(kw.text.size());
-                        matched_keyword = true;
-                        break; // keyword matched
-                    }
-                }
-            }
-
-            if (matched_keyword) continue;
+            if (matched_object<Keyword>(
+                keywords,
+                joined_input,
+                token_output,
+                [&](size_t n) { consume_chars(n); }
+            )) continue;
 
             // capture core functions
             struct CoreFunction {
@@ -286,26 +316,17 @@ struct Lexer {
             std::vector<CoreFunction> core_functions = {
                 CoreFunction("print", LexerTypes.CORE_FUNC()),
                 CoreFunction("input", LexerTypes.CORE_FUNC()),
-                CoreFunction("len", LexerTypes.CORE_FUNC()),
-                CoreFunction("type", LexerTypes.CORE_FUNC()),
+                CoreFunction("len",   LexerTypes.CORE_FUNC()),
+                CoreFunction("type",  LexerTypes.CORE_FUNC()),
                 CoreFunction("panic", LexerTypes.CORE_FUNC())
             }
 
-            bool matched_core_func = false;
-            for (auto& cf : core_functions) {
-                if (joined_input.substr(0, cf.text.size()) == cf.text) {
-                    // ensure next char is boundary
-                    char next_char = joined_input[cf.text.size()];
-                    if (std::isspace(next_char) || next_char == "(" || next_char == ";" || next_char == "\0" || next_char == "\n") {
-                        add_token(LexerToken(cf.text, cf.type));
-                        consume_chars(cf.text.size());
-                        matched_core_func = true;
-                        break;
-                    }
-                }
-            }
-
-            if (matched_core_func) continue;
+            if (matched_object<CoreFunction>(
+                core_functions,
+                joined_input,
+                token_output,
+                [&](size_t n) { consume_chars(n); }
+            )) continue;
 
             // capture declaratives
             struct Declarative {
@@ -317,31 +338,25 @@ struct Lexer {
             };
 
             std::vector<Declarative> declaratives = {
-                Declarative("fif",      LexerTypes.DECL()),
-                Declarative("fwhile",   LexerTypes.DECL()),
-                Declarative("feq",      LexerTypes.DECL()),
-                Declarative("fgeq",     LexerTypes.DECL()),
-                Declarative("fleq",     LexerTypes.DECL()),
-                Declarative("bincase",  LexerTypes.DECL()),
-                Declarative("fgt",      LexerTypes.DECL()),
-                Declarative("flt",      LexerTypes.DECL()),
-                Declarative("concat",   LexerTypes.DECL())
+                Declarative("fif",      LexerTypes.DECL()), // functionally optimized if block
+                Declarative("fwhile",   LexerTypes.DECL()), // tco optimized recursive while loop
+                Declarative("feq",      LexerTypes.DECL()), // ==
+                Declarative("fgeq",     LexerTypes.DECL()), // >= 
+                Declarative("fleq",     LexerTypes.DECL()), // <=
+                Declarative("bincase",  LexerTypes.DECL()), // binary swith case
+                Declarative("fgt",      LexerTypes.DECL()), // >
+                Declarative("flt",      LexerTypes.DECL()), // <
+                Declarative("concat",   LexerTypes.DECL()), // type + type
+                Declarative("fpeq",     LexerTypes.DECL()), // +=
+                Declarative("fmeq",     LexerTypes.DECL()), // -=
             };
 
-            bool matched_declarative = false;
-            for (auto& dec : declaratives) {
-                if (joined_input.substr(0, dec.text.size()) == dec.text) {
-                    char next_char = joined_input[dec.text.size()];
-                    if (std::isspace(next_char) || next_char == '(' || next_char == ';' || next_char == '\0' || next_char -- "\n") {
-                        add_token(LexerToken(dec.text, dec.type));
-                        consume_chars(dec.text.size());
-                        matched_declarative = true;
-                        break;
-                    }
-                }
-            }
-
-            if (matched_declarative) continue;
+            if (matched_object<Declarative>(
+                declaratives,
+                joined_input,
+                token_output,
+                [&](size_t n) { consume_chars(n); }
+            )) continue;
 
             // capture declarative methods
             struct DeclarativeMethod {
@@ -352,25 +367,17 @@ struct Lexer {
                     : text(_text), type(_type) {}
             };
 
-            std::vector<DeclarativeMethod> declarativeMethods = {
+            std::vector<DeclarativeMethod> declarative_methods = {
                 DeclarativeMethod(".ffor",   LexerTypes.DECLARATIVE_METHOD()),
                 DeclarativeMethod(".concat", LexerTypes.DECLARATIVE_METHOD())
             };
 
-            bool matched_declarative_method = false;
-            for (auto& dm : declarativeMethods) {
-                if (joined_input.substr(0, dm.text.size()) == dm.text) {
-                    char next_char = joined_input[dm.text.size()];
-                    if (std::isspace(next_char) || next_char == "(" || next_char == ";" || next_char == "\0" || next_char == "\n") {
-                        add_token(LexerToken(dm.text, dm.type));
-                        consume_chars(dm.text.size());
-                        matched_declarative_method = true;
-                        break;
-                    }
-                }
-            }
-
-            if (matched_declarative_method) continue;
+            if (matched_object<DeclarativeMethod>(
+                declarative_methods,
+                joined_input,
+                token_output,
+                [&](size_t n) { consume_chars(n); }
+            )) continue;
 
             // capture selectors
             struct Selector {
@@ -382,57 +389,95 @@ struct Lexer {
             };
 
             std::vector<Selector> selectors = {
-                Selector("and", LexerTypes.SELECTOR()),
-                Selector("or",  LexerTypes.SELECTOR()),
-                Selector("xor", LexerTypes.SELECTOR())
+                Selector("and", LexerTypes.SELECTOR()), // selects all values that were true, if falsey detected, [] is returned
+                Selector("or",  LexerTypes.SELECTOR()), // selects whichever values are truthy only between two thruth parameters of any type
+                Selector("xor", LexerTypes.SELECTOR()), // selects whichever value is true between two truth parameters of opposite type
             };
 
-            bool matched_selector = false;
-            for (auto& sel : selectors) {
-                if (joined_input.substr(0, sel.text.size()) == sel.text) {
-                    char nextChar = joined_input[sel.text.size()];
-                    if (std::isspace(next_char) || next_char == "(" || next_char == ";" || next_char == "\0" || next_char == "\n") {
-                        add_token(LexerToken(sel.text, sel.type));
-                        consume_chars(sel.text.size());
-                        matched_selector = true;
-                        break;
-                    }
-                }
+            if (matched_object<Selector>(
+                selectors,
+                joined_input,
+                token_output,
+                [&](size_t n) { consume_chars(n); }
+            )) continue;
+
+            // capture normalizers
+            struct Normalizer {
+                std::string text;
+                std::string type; 
+
+                Normalizer(const std::string& _text, const std::string& _type) 
+                    : text(_text), type(_type) {}
             }
 
-            if (matched_selector) continue;
+            std::vector<Normalizer> normalizers = {
+                Normalizer("not", LexerTypes.NORMALIZER()), // normilizes parameter to opposite of value's truthy or falsey properties in bool form
+                Normalizer("det", LexerTypes.NORMALIZER())  // normalizes parameter to direct representation of value's truthy or falsey properties in bool form
+            }
 
-            struct Selector {
+            if (matched_object<Normalizer>(
+                normalizers,
+                joined_input,
+                token_output,
+                [&](size_t n) { consume_chars(n); }
+            )) continue;
+
+            // capture assignment
+            struct Assignment {
                 std::string text;
                 std::string type;
 
-                Selector(const std::string& _text, const std::string& _type)
+                Assignment(const std::string& _text, const std::string& _type)
                     : text(_text), type(_type) {}
-            };
-
-            std::vector<Selector> selectors = {
-                Selector("or", LexerTypes.SELECTOR()),
-                Selector("and", LexerTypes.SELECTOR()),
-                Selector("xor", LexerTypes.SELECTOR()),
             }
 
-            bool matched_selector = false;
-            for (auto& sel : selectors) {
-                if (joined_input.substr(0, sel.text.size()) == sel.text) {
-                    char next_char = joined_input[sel.text.size()];
-                    if (std::isspace(next_char) || next_char == "(" || next_char == ";" || next_char == "\0" || next_char == "\n") {
-                        add_token(LexerToken(sel.text, sel.type));
-                        consume_chars(sel.text.size());
-                        matched_selector = true;
-                        break;
-                    }
+            std::vector<Assignment> assignments {
+                Assignment("=", LexerType.ASSIGN()), // for standard assignments
+                Assignment(":", LexerType.ASSIGN()) // for object assignments
+            }
+
+            if (matched_object<Assignment>(
+                assignments,
+                joined_input,
+                token_output,
+                [&](size_t n) { consume_chars(n); }
+            )) continue;
+
+            //capture children
+            if (input[0] == ".") {
+                std::regex pattern(R"(\.([A-Za-z_][A-Za-z0-9_]*))");
+                std::smatch match;
+
+                if (std::regex_search(joined_input, match, pattern) && match.position(0) == 0) {
+                    add_token(LexerToken(match[1], LexerTypes.CHILD()));
+                    consume_chars(match.length(0));
+                    continue;
                 }
             }
 
-            if (matched_selector) continue;
+            //capture classes
+            struct Class {
+                std::string text;
+                std::string type;
+
+                Class(const std::string& _text, const std::string& _type)
+                    : text(_text), type(_type) {}
+            }
+
+            std::vector<Class> classes = {
+                Class("class", LexerTypes.CLASS())
+            }
+
+            if (matched_object<Class>(
+                classes,
+                joined_input,
+                token_output,
+                [&](size_t n) { consume_chars(n); }
+            )) continue;
+
 
             // capture standard unexpected
-            add_token(LexerToken("", TokenTypes.UNEXP()));
+            add_token(LexerToken(split(joined_input, " ")[0], TokenTypes.UNEXP()));
             break;
 
             /*
@@ -451,3 +496,5 @@ struct Lexer {
         return std::nullopt;
     }
 };
+
+#endif // LEXER_H
