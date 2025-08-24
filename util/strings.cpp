@@ -1,13 +1,10 @@
-#ifndef STRINGS_H
-#define STRINGS_H
-
 #pragma once
 #include <iostream>
 #include <algorithm>
 #include <vector>
 #include <string>
 
-std::vector<std::string> split(const std::string& str, char delimiter) {
+inline std::vector<std::string> split(const std::string& str, char delimiter) {
     std::vector<std::string> result;
     size_t start = 0;
     size_t end = str.find(delimiter);
@@ -35,5 +32,3 @@ bool is_alpha(const std::string& str) {
         return std::isalpha(c);
     });
 }
-
-#endif // STRINGS_H

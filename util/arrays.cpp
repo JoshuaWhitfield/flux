@@ -1,6 +1,3 @@
-#ifndef ARRAYS_H
-#define ARRAYS_H
-
 #include <iostream>
 #include <sstream>
 #include <vector>
@@ -20,5 +17,3 @@ inline std::string join(const std::vector<std::string>& vec, const std::string& 
     }
     return oss.str();
 }
-
-#endif // ARRAYS_H

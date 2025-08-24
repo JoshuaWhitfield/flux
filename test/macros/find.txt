@@ -1,0 +1,5 @@
+# Pretty directory listing with two tabs of indentation
+listdir() {
+  local dir="${1:-.}"  # default to current directory if no arg
+  find "$dir" -print | sed 's|[^/]*/|	|g'
+}
