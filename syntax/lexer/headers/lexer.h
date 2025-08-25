@@ -377,17 +377,50 @@ struct Lexer {
             };
 
             std::vector<Declarative> declaratives = {
+                // control flow
                 Declarative("fif",      LexerTypes::DECL()), // functionally optimized if block
                 Declarative("fwhile",   LexerTypes::DECL()), // tco optimized recursive while loop
+                Declarative("ffor",     LexerTypes::DECL()), // function version of .ffor method attached to every type accept maps. optional usage
+                Declarative("fim",      LexerTypes::DECL()), // higher order function that returns its callback function for storage or computation
+                // comparisons
                 Declarative("feq",      LexerTypes::DECL()), // ==
+                Declarative("fneq",     LexerTypes::DECL()), // !=
                 Declarative("fgeq",     LexerTypes::DECL()), // >= 
                 Declarative("fleq",     LexerTypes::DECL()), // <=
-                Declarative("bincase",  LexerTypes::DECL()), // binary swith case
                 Declarative("fgt",      LexerTypes::DECL()), // >
                 Declarative("flt",      LexerTypes::DECL()), // <
-                Declarative("concat",   LexerTypes::DECL()), // type + type
                 Declarative("fpeq",     LexerTypes::DECL()), // +=
-                Declarative("fmeq",     LexerTypes::DECL()), // -=
+                Declarative("fseq",     LexerTypes::DECL()), // -=
+                Declarative("fmeq",     LexerTypes::DECL()), // *=
+                Declarative("fdeq",     LexerTypes::DECL()), // /=
+                Declarative("fmdeq",    LexerTypes::DECL()), // %=
+                Declarative("fxeq",     LexerTypes::DECL()), // ^=
+                // math operators
+                Declarative("fmin",     LexerTypes::DECL()), // -
+                Declarative("fadd",     LexerTypes::DECL()), // +
+                Declarative("fmul",     LexerTypes::DECL()), // *
+                Declarative("fdiv",     LexerTypes::DECL()), // /
+                Declarative("fmod",     LexerTypes::DECL()), // %
+                Declarative("fexp",     LexerTypes::DECL()), // ^
+                Declarative("finc",     LexerTypes::DECL()), // ++
+                Declarative("fdec",     LexerTypes::DECL()), // --
+                // switch cases
+                Declarative("bincase",  LexerTypes::DECL()), // binary swith case
+                Declarative("concat",   LexerTypes::DECL()), // type + type
+                // assertions
+                Declarative("assert",   LexerTypes::DECL()), // if == then return; storeable return value; return on called line outside of internal runtime scope
+                Declarative("callable", LexerTypes::DECL()), //
+                Declarative("type",     LexerTypes::DECL()), //
+                
+
+                /*
+                
+                    fmin, fadd, fmul, fdiv all do the following
+                    they normalize non integer values to truthy and falsey and proceed with their operation.
+                    this allows you to manipulate integers and floats with other types as if they are viable.
+                    they equate to 1 and 0 only, which allows for truthiness checks on information without det and not.
+                
+                */
             };
 
             if (match_object<Declarative>(
