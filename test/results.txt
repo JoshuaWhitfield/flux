@@ -1,0 +1,491 @@
+Tokenization results:
+
+Token(text="//", type="COMMENT_START")
+Token(text=" =====", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" IDENTIFIERS", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" =====", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="x", type="CONST")
+Token(text="
+", type="ENDL")
+Token(text="y", type="LET")
+Token(text="
+", type="ENDL")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" =====", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" STRINGS", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" =====", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="s1", type="LET")
+Token(text="=", type="ASSIGNMENT")
+Token(text="Hello, world!", type="STRING")
+Token(text="
+", type="ENDL")
+Token(text="s2", type="LET")
+Token(text="=", type="ASSIGNMENT")
+Token(text="Flux test", type="STRING")
+Token(text="
+", type="ENDL")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" =====", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" FLOATS & INTEGERS", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" =====", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="f", type="LET")
+Token(text="=", type="ASSIGNMENT")
+Token(text="3.14", type="FLOAT")
+Token(text="
+", type="ENDL")
+Token(text="i", type="LET")
+Token(text="=", type="ASSIGNMENT")
+Token(text="42", type="INTEGER")
+Token(text="
+", type="ENDL")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" =====", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" DATA STRUCTURES", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" =====", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="arr", type="LET")
+Token(text="=", type="ASSIGNMENT")
+Token(text="[", type="ARRAY_START")
+Token(text="1", type="INTEGER")
+Token(text=",", type="COMMA")
+Token(text="2", type="INTEGER")
+Token(text=",", type="COMMA")
+Token(text="3", type="INTEGER")
+Token(text="]", type="ARRAY_END")
+Token(text="
+", type="ENDL")
+Token(text="obj", type="LET")
+Token(text="=", type="ASSIGNMENT")
+Token(text="{", type="OBJECT_START")
+Token(text="key1", type="NAMESPACE")
+Token(text=":", type="ASSIGNMENT")
+Token(text="1", type="INTEGER")
+Token(text=",", type="COMMA")
+Token(text="key2", type="NAMESPACE")
+Token(text=":", type="ASSIGNMENT")
+Token(text="2", type="INTEGER")
+Token(text="}", type="OBJECT_END")
+Token(text="
+", type="ENDL")
+Token(text="tup", type="LET")
+Token(text="=", type="ASSIGNMENT")
+Token(text="(", type="TUPLE_START")
+Token(text="1", type="INTEGER")
+Token(text=",", type="COMMA")
+Token(text="2", type="INTEGER")
+Token(text=",", type="COMMA")
+Token(text="3", type="INTEGER")
+Token(text=")", type="TUPLE_END")
+Token(text="
+", type="ENDL")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" =====", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" STANDARD FUNCTIONS", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" =====", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="myFunc", type="FUNC")
+Token(text="(", type="TUPLE_START")
+Token(text="param", type="NAMESPACE")
+Token(text=")", type="TUPLE_END")
+Token(text="
+", type="ENDL")
+Token(text="anon", type="LET")
+Token(text="=", type="ASSIGNMENT")
+Token(text="(", type="TUPLE_START")
+Token(text=")", type="TUPLE_END")
+Token(text="=>", type="ANON_FUNC")
+Token(text="
+", type="ENDL")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" =====", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" KEYWORDS", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" =====", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="return", type="KEYWORD")
+Token(text="x", type="NAMESPACE")
+Token(text="
+", type="ENDL")
+Token(text="case", type="KEYWORD")
+Token(text="y", type="NAMESPACE")
+Token(text="
+", type="ENDL")
+Token(text="concede", type="KEYWORD")
+Token(text="i", type="NAMESPACE")
+Token(text="
+", type="ENDL")
+Token(text="default", type="KEYWORD")
+Token(text="f", type="NAMESPACE")
+Token(text="
+", type="ENDL")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" =====", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" CORE FUNCTIONS", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" =====", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="print", type="CORE_FUNC")
+Token(text="Hello", type="STRING")
+Token(text="
+", type="ENDL")
+Token(text="input", type="CORE_FUNC")
+Token(text="
+", type="ENDL")
+Token(text="len", type="CORE_FUNC")
+Token(text="arr", type="NAMESPACE")
+Token(text="
+", type="ENDL")
+Token(text="type", type="CORE_FUNC")
+Token(text="x", type="NAMESPACE")
+Token(text="
+", type="ENDL")
+Token(text="panic", type="CORE_FUNC")
+Token(text="Error", type="STRING")
+Token(text="
+", type="ENDL")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" =====", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" DECLARATIVES", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" =====", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="fif", type="DECL")
+Token(text="(", type="TUPLE_START")
+Token(text="x", type="NAMESPACE")
+Token(text="=", type="ASSIGNMENT")
+Token(text="=", type="ASSIGNMENT")
+Token(text="y", type="NAMESPACE")
+Token(text=")", type="TUPLE_END")
+Token(text="
+", type="ENDL")
+Token(text="fwhile", type="DECL")
+Token(text="(", type="TUPLE_START")
+Token(text="fgt", type="DECL")
+Token(text="(", type="TUPLE_START")
+Token(text="10", type="INTEGER")
+Token(text=",", type="COMMA")
+Token(text="i", type="NAMESPACE")
+Token(text=")", type="TUPLE_END")
+Token(text=")", type="TUPLE_END")
+Token(text="
+", type="ENDL")
+Token(text="feq", type="DECL")
+Token(text="(", type="TUPLE_START")
+Token(text="x", type="NAMESPACE")
+Token(text=",", type="COMMA")
+Token(text="y", type="NAMESPACE")
+Token(text=")", type="TUPLE_END")
+Token(text="
+", type="ENDL")
+Token(text="fgeq", type="DECL")
+Token(text="(", type="TUPLE_START")
+Token(text="x", type="NAMESPACE")
+Token(text=",", type="COMMA")
+Token(text="y", type="NAMESPACE")
+Token(text=")", type="TUPLE_END")
+Token(text="
+", type="ENDL")
+Token(text="fleq", type="DECL")
+Token(text="(", type="TUPLE_START")
+Token(text="x", type="NAMESPACE")
+Token(text=",", type="COMMA")
+Token(text="y", type="NAMESPACE")
+Token(text=")", type="TUPLE_END")
+Token(text="
+", type="ENDL")
+Token(text="bincase", type="DECL")
+Token(text="(", type="TUPLE_START")
+Token(text="x", type="NAMESPACE")
+Token(text=")", type="TUPLE_END")
+Token(text="
+", type="ENDL")
+Token(text="fgt", type="DECL")
+Token(text="(", type="TUPLE_START")
+Token(text="x", type="NAMESPACE")
+Token(text=",", type="COMMA")
+Token(text="y", type="NAMESPACE")
+Token(text=")", type="TUPLE_END")
+Token(text="
+", type="ENDL")
+Token(text="flt", type="DECL")
+Token(text="(", type="TUPLE_START")
+Token(text="x", type="NAMESPACE")
+Token(text=",", type="COMMA")
+Token(text="y", type="NAMESPACE")
+Token(text=")", type="TUPLE_END")
+Token(text="
+", type="ENDL")
+Token(text="concat", type="DECL")
+Token(text="x", type="NAMESPACE")
+Token(text="y", type="NAMESPACE")
+Token(text="
+", type="ENDL")
+Token(text="fpeq", type="DECL")
+Token(text="(", type="TUPLE_START")
+Token(text="x", type="NAMESPACE")
+Token(text=",", type="COMMA")
+Token(text="y", type="NAMESPACE")
+Token(text=")", type="TUPLE_END")
+Token(text="
+", type="ENDL")
+Token(text="fmeq", type="DECL")
+Token(text="(", type="TUPLE_START")
+Token(text="x", type="NAMESPACE")
+Token(text=",", type="COMMA")
+Token(text="y", type="NAMESPACE")
+Token(text=")", type="TUPLE_END")
+Token(text="
+", type="ENDL")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" =====", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" DECLARATIVE METHODS", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" =====", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="x", type="NAMESPACE")
+Token(text=".ffor", type="DECL_METHOD")
+Token(text="(", type="TUPLE_START")
+Token(text=")", type="TUPLE_END")
+Token(text="
+", type="ENDL")
+Token(text="y", type="NAMESPACE")
+Token(text=".concat", type="DECL_METHOD")
+Token(text="(", type="TUPLE_START")
+Token(text="x", type="NAMESPACE")
+Token(text=")", type="TUPLE_END")
+Token(text="
+", type="ENDL")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" =====", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" SELECTORS", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" =====", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="a", type="NAMESPACE")
+Token(text="and", type="SELECTOR")
+Token(text="b", type="NAMESPACE")
+Token(text="
+", type="ENDL")
+Token(text="c", type="NAMESPACE")
+Token(text="or", type="SELECTOR")
+Token(text="d", type="NAMESPACE")
+Token(text="
+", type="ENDL")
+Token(text="e", type="NAMESPACE")
+Token(text="xor", type="SELECTOR")
+Token(text="f", type="NAMESPACE")
+Token(text="
+", type="ENDL")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" =====", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" NORMALIZERS", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" =====", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="not", type="NORMALIZER")
+Token(text="x", type="NAMESPACE")
+Token(text="
+", type="ENDL")
+Token(text="det", type="NORMALIZER")
+Token(text="y", type="NAMESPACE")
+Token(text="
+", type="ENDL")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" =====", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" ASSIGNMENT", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" =====", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="z", type="LET")
+Token(text="=", type="ASSIGNMENT")
+Token(text="100", type="INTEGER")
+Token(text="
+", type="ENDL")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" =====", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" CHILDREN", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" =====", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="object", type="NAMESPACE")
+Token(text="child1", type="CHILD")
+Token(text="
+", type="ENDL")
+Token(text="object", type="NAMESPACE")
+Token(text="child2", type="CHILD")
+Token(text="
+", type="ENDL")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" =====", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" CLASSES", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" =====", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="class", type="NAMESPACE")
+Token(text="MyClass", type="NAMESPACE")
+Token(text="
+", type="ENDL")
+Token(text="class", type="NAMESPACE")
+Token(text="AnotherClass", type="NAMESPACE")
+Token(text="
+", type="ENDL")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" =====", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" REFERENCES", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" =====", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="@", type="REFERENCE")
+Token(text="invalid_token", type="NAMESPACE")
+Token(text="
+", type="ENDL")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" =====", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" UNEXPECTED", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="//", type="COMMENT_START")
+Token(text=" =====", type="COMMENT")
+Token(text="
+", type="ENDL")
+Token(text="object", type="CONST")
+Token(text="=", type="ASSIGNMENT")
+Token(text="{", type="OBJECT_START")
+Token(text="}", type="OBJECT_END")
+Token(text=";", type="ENDL")
+Token(text="
+", type="ENDL")
+Token(text="object", type="LET")
+Token(text=".", type="UNEXPECTED")
+Token(text="ENDF", type="EOF")

@@ -16,7 +16,7 @@ struct LexerTypes {
     inline static std::string COMMA() { return "COMMA"; }
     inline static std::string ENDL() { return "ENDL"; }
     inline static std::string ENDF() { return "EOF"; }
-    inline static std::string REF() { return "REF"; }
+    inline static std::string REF() { return "REFERENCE"; }
     inline static std::string LET() { return "LET"; }
     inline static std::string CONST() { return "CONST"; }
     inline static std::string INTEGER() { return "INTEGER"; }
