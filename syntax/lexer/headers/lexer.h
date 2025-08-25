@@ -65,7 +65,6 @@ struct Lexer {
     inline void consume_chars(size_t n) {
         if (n > input.size()) n = input.size();
         input.erase(input.begin(), input.begin() + n);
-        print("consumed length: " + std::to_string(n));
     }
 
 
@@ -98,14 +97,13 @@ struct Lexer {
             }
 
             // Skip whitespace
-            //print(current);
             if (input[0] == ' ' || input[0] == '\t') {
                 consume();
                 continue;
             }
             
-            // Handle newline
-            char ch = currentOpt.value();
+            // capture newline
+            char ch = static_cast<char>(current[0]);
             if (ch == '\n' || ch == ';') {
                 add_token(LexerToken(std::string(1, ch), LexerTypes::ENDL()));
                 consume();
@@ -120,13 +118,8 @@ struct Lexer {
                 // add tokens
                 add_token(LexerToken("//", LexerTypes::COMMENT_START()));
                 std::string comment_text = str_slice(input, 0, i);
-                //comment_text(input.begin(), input.begin() + i);
                 add_token(LexerToken(str_slice(comment_text, 2), LexerTypes::COMMENT()));
-                
-                // consume properly
-                //print(input);
                 consume_chars(comment_text.size()); // i is index of '\n', i.e., total chars from 0 → i-1? 
-                //exit();
 
                 continue;
             }
@@ -149,7 +142,6 @@ struct Lexer {
             }
 
             // capture strings
-            //print(input[0]);
             if (input[0] == '\'' || input[0] == '"') {
                 std::smatch match;
                 std::regex pattern(R"(\"(.*?)\"|\'(.*?)\')");
@@ -165,7 +157,6 @@ struct Lexer {
                     
                     add_token(LexerToken(str, LexerTypes::STRING()));
                     consume_chars(str.size() + 2);
-                    //print("size: " + std::to_string(str.size()) + "; text = " + str);
                     continue;
                 }
             }
@@ -508,35 +499,21 @@ struct Lexer {
                 [&](size_t n) { consume_chars(n); }
             )) continue;
             
-            // capture namespaces
-            //print("input current: " + std::to_string(static_cast<unsigned char>(input[0])));
-            if (std::isalpha(static_cast<unsigned char>(input[0]))) {
-                std::smatch match;
-                std::regex pattern(R"(&?[A-Za-z_][A-Za-z0-9_]*)");
-                if (std::regex_search(input, match, pattern) && match.position(0) == 0) {
-                    //print("match pos: " + std::to_string(match.position(0)));
-                    std::string ns_name = match[0].str();
-                    add_token(LexerToken(ns_name, LexerTypes::NAMESPACE()));
-                    consume_chars(ns_name.size());
-                    //print("namespace: " + ns_name);
-                    continue;
-                }
-            }
-
+            
             // capture assignment
             struct Assignment {
                 std::string text;
                 std::string type;
-
+                
                 Assignment(const std::string& _text, const std::string& _type)
-                    : text(_text), type(_type) {}
+                : text(_text), type(_type) {}
             };
-
+            
             std::vector<Assignment> assignments {
                 Assignment("=", LexerTypes::ASSIGN()), // for standard assignments
                 Assignment(":", LexerTypes::ASSIGN()) // for object assignments
             };
-
+            
             if (match_object<Assignment>(
                 assignments,
                 input,
@@ -545,57 +522,66 @@ struct Lexer {
             )) {
                 continue;
             }
-
+            
             //capture children
             if (input[0] == '.') {
                 std::regex pattern(R"(\.([A-Za-z_][A-Za-z0-9_]*))");
                 std::smatch match;
-
+                
                 if (std::regex_search(input, match, pattern) && match.position(0) == 0) {
                     add_token(LexerToken(match[1], LexerTypes::CHILD()));
                     consume_chars(match.length(0));
                     continue;
                 }
             }
-
+            
             //capture classes
             struct Class {
                 std::string text;
                 std::string type;
-
+                
                 Class(const std::string& _text, const std::string& _type)
-                    : text(_text), type(_type) {}
+                : text(_text), type(_type) {}
             };
-
+            
             std::vector<Class> classes = {
                 Class("class", LexerTypes::CLASS())
             };
-
+            
             if (match_object<Class>(
                 classes,
                 input,
                 token_output,
                 [&](size_t n) { consume_chars(n); }
             )) continue;
-
-
-            print("checkpoint unexpected");
-
+            
+            // capture namespaces
+            if (std::isalpha(static_cast<unsigned char>(input[0]))) {
+                std::smatch match;
+                std::regex pattern(R"(&?[A-Za-z_][A-Za-z0-9_]*)");
+                if (std::regex_search(input, match, pattern) && match.position(0) == 0) {
+                    std::string ns_name = match[0].str();
+                    add_token(LexerToken(ns_name, LexerTypes::NAMESPACE()));
+                    consume_chars(ns_name.size());
+                    continue;
+                }
+            }
+            
             // capture standard unexpected
             add_token(LexerToken(split(input, ' ')[0], LexerTypes::UNEXP()));
             break;
-
+            
             /*
             
-                if the Token("UNEXPECTED") contains an empty string as
-                a value, then it is a traditional unexpected token. 
-                it is handled variably and dynamically depending on 
-                where it is in the parsing process.
+            if the Token("UNEXPECTED") contains an empty string as
+            a value, then it is a traditional unexpected token. 
+            it is handled variably and dynamically depending on 
+            where it is in the parsing process.
             
             */
-
+           
         }
-
+        
         // capture end-of-file
         add_token(LexerToken("ENDF", LexerTypes::ENDF()));
         return std::nullopt;

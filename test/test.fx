@@ -49,7 +49,7 @@ panic "Error"
 // =====
 // DECLARATIVES
 // =====
-fif (x == y)
+fif (feq(x, y))
 fwhile(fgt(10, i))
 feq(x, y)
 fgeq(x, y)

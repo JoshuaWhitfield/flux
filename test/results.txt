@@ -221,10 +221,12 @@ Token(text="
 ", type="ENDL")
 Token(text="fif", type="DECL")
 Token(text="(", type="TUPLE_START")
+Token(text="feq", type="DECL")
+Token(text="(", type="TUPLE_START")
 Token(text="x", type="NAMESPACE")
-Token(text="=", type="ASSIGNMENT")
-Token(text="=", type="ASSIGNMENT")
+Token(text=",", type="COMMA")
 Token(text="y", type="NAMESPACE")
+Token(text=")", type="TUPLE_END")
 Token(text=")", type="TUPLE_END")
 Token(text="
 ", type="ENDL")
@@ -439,11 +441,11 @@ Token(text="//", type="COMMENT_START")
 Token(text=" =====", type="COMMENT")
 Token(text="
 ", type="ENDL")
-Token(text="class", type="NAMESPACE")
+Token(text="class", type="CLASS")
 Token(text="MyClass", type="NAMESPACE")
 Token(text="
 ", type="ENDL")
-Token(text="class", type="NAMESPACE")
+Token(text="class", type="CLASS")
 Token(text="AnotherClass", type="NAMESPACE")
 Token(text="
 ", type="ENDL")
