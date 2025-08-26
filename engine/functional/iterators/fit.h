@@ -1,5 +1,5 @@
-#ifndef FUNCTIONALITERATOR_H
-#define FUNCTIONALITERATOR_H
+#ifndef FITERATOR_H
+#define FITERATOR_H
 
 #include <functional>  // for std::function
 #include <variant>     // for std::variant (tail-call wrapper)
@@ -104,4 +104,4 @@ public:
 
 };
 
-#endif // FUNCTIONALITERATOR_H
+#endif // FITERATOR_H
