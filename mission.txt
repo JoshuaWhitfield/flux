@@ -1,0 +1,28 @@
+create the functional engine below flux in cpp. then rewrite lexer to accmodate this.
+then write graph system with functional engine, then write parser.
+
+class Edge {
+    constructor(int _source, int _target, int _label) {
+        this.source = _source // source ID
+        this.target = target // target ID
+        this.label = _label // label ID
+    }
+
+    get_node = () => this.node_access;
+    place_node = (new_node) => {
+        this.node_access = new_node
+    }
+}
+
+std::vector<Edge> edge_table;
+
+class Node {
+    constructor() {
+        uint_32_t this.id = _id
+        type = _type
+        T value = _value 
+        std::vector<Edges> edges = []
+    }
+
+
+}

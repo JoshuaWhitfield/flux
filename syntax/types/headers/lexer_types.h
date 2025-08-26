@@ -34,6 +34,7 @@ struct LexerTypes {
     inline static std::string DECL() { return "DECL"; }
     inline static std::string DECL_METHOD() { return "DECL_METHOD"; }
     inline static std::string CLASS() { return "CLASS"; }
+    inline static std::string PARENT() { return "PARENT"; }
     inline static std::string CHILD() { return "CHILD"; }
     inline static std::string UNEXP() { return "UNEXPECTED"; }
 };
