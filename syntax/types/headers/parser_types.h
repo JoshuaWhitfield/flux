@@ -54,7 +54,7 @@ struct ParserTypes {
     // ===== Misc =====
     inline static std::string REFERENCE() { return "REFERENCE"; }
     inline static std::string UNKNOWN() { return "UNKNOWN"; }
-    inline static std::string END_OF_FILE() { return "EOF"; }
+    inline static std::string ENDF() { return "ENDF"; }
 };
 
 #endif // PARSERTYPES_H
