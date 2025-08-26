@@ -3,8 +3,6 @@ Flux is a lightweight, declarative, semantically functional programming language
 
 Key Features
 
-Functional-first: Functions are central, with expressions like fif, fwhile, and ffor enabling concise control flow and iteration.
-
 Unified type system: Includes FluxObject, FluxArray, FluxTuple, FluxString, FluxInteger, and more for predictable and type-safe operations.
 
 Declarative constructs: Control flow constructs are first-class, enabling stored and reusable logic with clear evaluation rules.
