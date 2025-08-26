@@ -498,7 +498,7 @@ struct Lexer {
             /
 
             class x {
-
+                
             }
 
 
