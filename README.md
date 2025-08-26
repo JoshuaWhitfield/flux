@@ -1,5 +1,5 @@
 # flux
-Flux is a lightweight, declarative, functionally semantic programming language designed for clarity, expressiveness, and safety. It combines a minimalistic core with powerful abstractions, enabling developers to write clean, declarative, and highly maintainable code.
+Flux is a lightweight, declarative, semantically functional programming language designed for clarity, expressiveness, and safety. It combines a minimalistic core with powerful abstractions, enabling developers to write clean, declarative, and highly maintainable code.
 
 Key Features
 
