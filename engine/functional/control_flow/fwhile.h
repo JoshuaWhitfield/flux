@@ -1,5 +1,5 @@
-#ifndef FWHILE_HPP
-#define FWHILE_HPP
+#ifndef FWHILE_H
+#define FWHILE_H
 
 #include <functional>
 #include "break_iterator.hpp"
@@ -29,4 +29,4 @@ void FWHILE(
     });
 }
 
-#endif // FWHILE_HPP
+#endif // FWHILE_H
