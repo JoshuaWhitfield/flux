@@ -1,6 +1,7 @@
-./.vscode
-./.vscode/settings.json
-./flux
-./text/macros
-./test/macros/find.txt
+.gitignore
+.vscode
+.vscode/settings.json
+flux
+test/macros
+test/macros/find.txt
 
