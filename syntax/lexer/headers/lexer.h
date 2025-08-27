@@ -416,7 +416,7 @@ struct Lexer {
                 Declarative("callable", LexerTypes::DECL()), // checks if its parameter is callable with optional args parameter as well
                 Declarative("type",     LexerTypes::DECL()), // grabs type of value and holds as a string object
                 // iteratable operators
-                Declarative("concat",   LexerTypes::DECL()), // type + type operates like fadd() on integer objects
+                Declarative("fcat",   LexerTypes::DECL()), // type + type operates like fadd() on integer objects
                 
                 /*
                 
@@ -448,65 +448,22 @@ struct Lexer {
 
             std::vector<Graph> graphs = {
                 Graph("runtime", LexerTypes::GRAPH_REF()),
-                Graph("namespace", LexerTypes::GRAPH_REF()),
+                //Graph("namespace", LexerTypes::GRAPH_REF()),
                 Graph("depend", LexerTypes::GRAPH_REF()),
                 Graph("express", LexerTypes::GRAPH_REF()),
                 Graph("write", LexerTypes::GRAPH_REF()),
-                Graph("scope", LexerTypes::GRAPH_REF()),
-                
-            }
-            
-            // i like this syntax more:
-
-            let graph_snapshot = serialize :(this)
-            /* 
-            dont forget that I must generate the dependency graph of this and expose it along with the 
-            serialize graph so we can get external dependencies from higher scopes. I want to make it 
-            appear as if the return value is a combination of the serialized data and a dependency object
-            with checking and evaluation operations. this way the string can be sent off, and the deserialize 
-            with program context. the serialize and deserialize graph references will be connected. this way when s:() and 
-            a graph is made, its dependencies are shared with deserialize, and sent through other software written in flux
-            with the dependency relationships written in an encoded way that regenerate into object form with flux, which is
-            used to deserialize the runtime graph as well. 
-            
-            where :some_func() would have been, : denotes 
-            the only available function being called on the 
-            graph operator object internally. this graph call is scope dependant.
-            which means if it is in global scope, it grabs the whole graph, if it is
-            in a specific scope then it grabs the scope. scopes include objects and arrays.
-            [1, 2, serialize :((x) => x * 3, 3), 3]
-            / 
-                in an array this makes it so that serial is a nested subgraph denoting the current
-                state of the array at initialization, one layer deep or recursively to :(..., int n).
-                it is essentially a functor based graph generation of some sort that allows the creation of nested 
-                vector graphs with coninuous data. while :(func, ...) runs the callback function on each original array element to
-                specified depth in :(func, int n_depth)
-            / 
-            z = () => {x: 24, y: 25, z:26}
-            let x = {
-                a: 1,
-                b: 2,
-                c: serialize :(z),
-                d: 4
-            }
-
-            /
-                if is an object it makes it so that serialize is a nested subgraph denoting deep copied graph of the original object with
-                a passed in subnested object, container, or literal. this is less about auto recursing table generation and more about replacing 
-                values in a subgraph to see how the operating algorithm changes along with its output over time. there is not functional parameter 
-                or recursive depth indicating parameter here. 
-            /
-
-            class x {
+                // Graph("scope", LexerTypes::GRAPH_REF()), graph to not be exposed but used by serialize and deserialize
+                Graph("serialize", LexerTypes::GRAPH_REF()),
+                Graph("deserialize", LexerTypes::GRAPH_REF()),
                 
             }
 
-
-            func x {}
-            {
-                //scope
-            }
-            */
+            if (match_object<Graph>(
+                graphs,
+                input,
+                token_output,
+                [&](size_t n) { consume_chars(n); }
+            )) continue;
 
             // capture declarative methods
             struct DeclarativeMethod {
@@ -562,7 +519,9 @@ struct Lexer {
             
             std::vector<Normalizer> normalizers = {
                 Normalizer("not", LexerTypes::NORMALIZER()), // normilizes parameter to opposite of value's truthy or falsey properties in bool form
-                Normalizer("det", LexerTypes::NORMALIZER())  // normalizes parameter to direct representation of value's truthy or falsey properties in bool form
+                Normalizer("det", LexerTypes::NORMALIZER()),  // normalizes parameter to direct representation of value's truthy or falsey properties in bool form
+                Normalizer("constr", LexerTypes::NORMALIZER()),
+                Normalizer("new", LexerTypes::NORMALIZER()),
             };
             
             if (match_object<Normalizer>(
