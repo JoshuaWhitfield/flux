@@ -17,11 +17,13 @@ struct LexerTypes {
     inline static std::string ENDL() { return "ENDL"; }
     inline static std::string ENDF() { return "EOF"; }
     inline static std::string GRAPH_REF() { return "GRAPH_REFERENCE"; }
+  //inline static std::string GRAPH_CALL() { return "GRAPH_CALL"; } ; to be used at parser level.
     inline static std::string REF() { return "REFERENCE"; }
     inline static std::string LET() { return "LET"; }
     inline static std::string CONST() { return "CONST"; }
     inline static std::string INTEGER() { return "INTEGER"; }
     inline static std::string STRING() { return "STRING"; }
+    inline static std::string BOOL() { return "BOOLEAN"; }
     inline static std::string FLOAT() { return "FLOAT"; }
     inline static std::string OBJECT_START() { return "OBJECT_START"; }
     inline static std::string ARRAY_START() { return "ARRAY_START"; }

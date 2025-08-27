@@ -571,3 +571,165 @@ Essentially, the functional code is the “authoring layer”, the graphical fra
 This way, you never directly run a graph; you generate it by writing functional code, and the driver iterates it.
 
 */
+
+// Parser Architecture:
+
+/*
+
+Perfect — you're describing a clean three-layer separation of responsibility. Here's a breakdown with clarified roles and how they interact, plus some reminders you might want before implementation:
+
+🧱 Layer Breakdown
+1. Parser Layer
+
+"Dumb but honest"
+Purpose: Emit a structural description using objects — no interpretation, no validation.
+
+Encodes:
+
+Data relationships
+
+Operational relationships
+
+Output: flat or nested object descriptions (partial allowed)
+
+Does not:
+
+Interpret
+
+Validate
+
+Collapse graphs
+
+Handle scope or dependencies
+
+2. Validation Layer
+
+"Context-aware structure + dependency synthesis"
+Purpose:
+
+Add namespaces, scopes, and dependency graphs
+
+Ensure the graph is well-formed structurally
+
+Check referential integrity, name resolution, scope containment, etc.
+
+Responsibilities:
+
+Build namespace trees
+
+Resolve symbol links
+
+Track scope boundaries (stack frames, modules, closures, etc.)
+
+Generate dependency graph
+
+Including data → data and op → op links
+
+Can include cross-scope dependencies
+
+Detect and warn about:
+
+Circular dependencies (if disallowed)
+
+Undefined references
+
+Unscoped variables
+
+Output: a fully resolved intermediate dependency graph
+
+✅ This layer knows semantics of scope and reference, but not behavior or execution logic.
+
+3. IR Layer (Runtime Validation Layer)
+
+"The execution-aware layer"
+Purpose:
+
+Evaluate the validity of the dependency graph in context of the runtime graph
+
+Detect mismatches and throw runtime errors
+
+Responsibilities:
+
+Check that all dependencies are satisfied in runtime scope
+
+Ensure that runtime-executable forms exist for all required nodes
+
+Validate ordering, availability, and type expectations
+
+Resolve or fail on:
+
+Missing runtime resources
+
+Broken links
+
+Invalid transitions
+
+Late-bound errors (e.g., delayed linking)
+
+✅ This layer is the first one that can throw real errors
+✅ It is runtime-coupled, unlike the first two layers
+
+
+*/
+
+// Parser Dont's: 
+
+/*
+
+    Purpose:
+This is meant to encode with objects the description of:
+
+Data relationships
+
+Operational relationships
+
+This is a descriptive layer, not an evaluative or transformational one.
+
+
+    - attempt to encode recursion
+        → only return discrete objects; recursion is external to this representation.
+
+    - attempt to encode graph collapse
+        → only represent that a graph *exists*
+        → use a null prefix or marker to denote the beginning of a collapsible scope, but do not perform the collapse.
+
+    - attempt to reduce or flatten nested or hierarchical structures
+        → nesting is allowed, but no summarization or optimization should happen.
+
+    - infer meaning beyond the directly represented relationships
+        → e.g., don’t deduce function, execution order, or runtime behavior from structure.
+
+    - apply semantic interpretation (e.g., typing, mutation, memory)
+        → this is a syntactic and structural pass only.
+
+    - resolve symbolic references (e.g., names, variables, pointers)
+        → just record that a reference exists.
+
+    - handle control flow or branching logic
+        → operational relationships may describe flow, but not conditional logic.
+
+    - generate runtime structures or simulate execution
+        → this is not a virtual machine, just a static shape.
+
+    - assume completeness of any object or graph
+        → partial graphs are valid; absence of edges or fields is allowed.
+
+
+Additional Guidance:
+
+✅ Represent each object as a standalone unit of structure or relationship — all linkage should be explicit.
+
+✅ Allow for anonymous or unnamed nodes, using placeholder or null markers when necessary.
+
+✅ Prefer uniform object shapes over special-cased ones — the structure should be consistent even if values vary.
+
+✅ Every edge or relationship should be directional and typed (e.g., flows_to, contains, uses), even if the type is abstract.
+
+✅ Use prefixes, scopes, or context markers to group or signal hierarchical or collapsible regions — but never perform the grouping automatically.
+
+✅ If order is relevant (e.g., for operations), preserve it explicitly (e.g., step_1, step_2, etc.)
+
+✅ Allow for metadata fields as long as they are non-semantic (e.g., source_location, origin_id).
+
+
+*/
