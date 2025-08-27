@@ -554,3 +554,20 @@ Data flow:
 
 
 */
+
+// Architecture:
+
+/*
+    Write code functionally — using your FFOR, FWHILE, FDEC, FIM, etc., and any other functional abstractions.
+
+Functional code drives the IR — the IR observes the functional constructs and generates a graphical framework instance from them. This includes nodes, edges, scopes, namespaces, etc.
+
+Graphical framework is instantiated — the IR populates it with all the runtime information as a graph.
+
+Driver iterates the graph — the driver runs over this graphical framework, executing the serialized graph and maintaining runtime state.
+
+Essentially, the functional code is the “authoring layer”, the graphical framework is the “runtime representation layer”, and the driver is the “executor layer”.
+
+This way, you never directly run a graph; you generate it by writing functional code, and the driver iterates it.
+
+*/

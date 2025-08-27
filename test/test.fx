@@ -1,109 +1,78 @@
-// =====
-// IDENTIFIERS
-// =====
-const x
-let y
+// === Comments ===
+// Single-line comment
+/* Multi-line
+   comment */
 
-// =====
-// STRINGS
-// =====
-let s1 = "Hello, world!"
-let s2 = 'Flux test'
+// === Declarations ===
+const pi = 3.14159;
+let counter = 0;
 
-// =====
-// FLOATS & INTEGERS
-// =====
-let f = 3.14
-let i = 42
+// === Functions ===
+func add(a, b) => a fadd b;
+func multiply(x, y) => x fmul y;
 
-// =====
-// DATA STRUCTURES
-// =====
-let arr = [1, 2, 3]
-let obj = { key1: 1, key2: 2 }
-let tup = (1, 2, 3)
+// === Core functions ===
+print("Pi value:");
+print(pi);
+print(add(2, 3));
+print(multiply(4, 5));
 
-// =====
-// STANDARD FUNCTIONS
-// =====
-func myFunc(param)
-let anon = () =>
+// === Declaratives / control flow ===
+fif feq(counter, 0) {
+    print("Counter is zero");
+} else {
+    print("Counter is not zero");
+}
 
-// =====
-// KEYWORDS
-// =====
-return x
-case y
-concede i
-default f
+fwhile flt(counter, 10) {
+    counter finc;
+}
 
-// =====
-// CORE FUNCTIONS
-// =====
-print "Hello"
-input
-len arr
-type x
-panic "Error"
+// === Arrays / Objects / Tuples ===
+let numbers = [1, 2, 3, 4];
+let user = { name: "Alice", age: 30 };
+let pair = (pi, counter);
 
-// =====
-// DECLARATIVES
-// =====
-fif (feq(x, y))
-fwhile(fgt(10, i))
-feq(x, y)
-fgeq(x, y)
-fleq(x, y)
-bincase(x)
-fgt(x, y)
-flt(x, y)
-concat x y
-fpeq(x, y)
-fmeq(x, y)
+// === Declarative methods ===
+numbers.ffor(fadd);       // add elements functionally
+let concatenated = numbers.concat([5, 6]);
 
-// =====
-// DECLARATIVE METHODS
-// =====
-x.ffor()
-y.concat(x)
+// === Assertions / callable / type ===
+assert feq(len(numbers), 4);
+callable(add);
+type(user);
 
-// =====
-// SELECTORS
-// =====
-a and b
-c or d
-e xor f
+// === References ===
+@ref_counter = counter;
 
-// =====
-// NORMALIZERS
-// =====
-not x
-det y
+// === Selectors ===
+let truthy_vals = [1, 0, 2].and;  // selects truthy only
+let falsey_vals = [0, null].or;   // selects whichever is truthy
+let xor_test = [1, 0].xor;
 
-// =====
-// ASSIGNMENT
-// =====
-let z = 100
+// === Normalizers ===
+let negated = not(true); 
+let direct = det(1); 
+let new_object = new(); 
+let constrained = constr("value");
 
-// =====
-// CHILDREN
-// =====
-object.child1
-object.child2
+// === Assignments / children ===
+x = 10;
+y: 20;
+user.name = "Bob";
 
-// =====
-// CLASSES
-// =====
-class MyClass
-class AnotherClass
+// === Classes / Namespaces ===
+class MyClass {
+    func method() => print("Hello");
+}
 
-// =====
-// REFERENCES
-// =====
-@invalid_token
+&MyNamespace
 
-// =====
-// UNEXPECTED
-// =====
-const object = {};
-let object. = 1;
+// === Graph references / runtime ===
+runtime.serialize(user);
+runtime.deserialize(user);
+depend();
+express();
+write();
+
+// === End of file ===

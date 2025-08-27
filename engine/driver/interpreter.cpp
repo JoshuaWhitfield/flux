@@ -31,7 +31,8 @@ void write_tokens(const std::vector<LexerToken>& tokens, const std::string& out_
     out << "Tokenization results:\n\n";
     for (const auto& token : tokens) {
         out << "Token(text=\"" << token.value 
-            << "\", type=\"" << token.type << "\")\n";
+            << "\", type=\"" << token.type << "\")\n"
+            << "\", line=\"" << token.line << "\")\n";
     }
 
     out.close();
