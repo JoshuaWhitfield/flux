@@ -9,6 +9,17 @@
 #include <vector>
 #include <functional>
 
+// Template function to extract value from EdgeTT
+template<
+    template<typename> class EdgeTT,
+    typename EdgeValueT,
+    typename NodeT = Node
+>
+inline EdgeTT<EdgeValueT>& extract_edge(NodeT& node, const std::string& key) {
+    return node.template getAs<EdgeTT<EdgeValueT>>(key);
+}
+
+
 // Functional FOR wrapper
 template <typename T, typename R>
 inline auto ffor(
@@ -38,7 +49,8 @@ inline auto ffor(
     auto& end      = node.getAs<Edge<bool>>("end");
     auto& cont     = node.getAs<Edge<bool>>("cont");
 
-    Iterator<T, R, Node> iterator(  // heterogeneous Node type
+    Iterator<T, R, Node> iterator(
+        node,        // Pass the node first
         index,
         elem,
         jumpEdge,

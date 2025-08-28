@@ -5,6 +5,7 @@
 #include <variant>
 #include <vector>
 #include "../models/edge.h"
+#include "../models/node.h"
 #include "../models/tco.h"
 
 // TailCall wrapper for TCO
@@ -15,9 +16,12 @@ inline auto wrap_history(const std::vector<T>& h) {
 
 template <typename T, typename R, typename NodeT>
 class Iterator {
+private:
+    NodeT& node;
+
 public:
     Edge<int>& index;
-    Edge<std::optional<T>>& iterand;
+    Edge<std::optional<T>>& elem;
     Edge<int>& interval;
     Edge<std::vector<T>>& body;
     Edge<std::vector<R>>& history;
@@ -26,16 +30,28 @@ public:
     Edge<bool>& cont;
 
     Iterator(
-        Edge<int>& idx,
-        Edge<std::optional<T>>& iter,
-        Edge<int>& step,
-        Edge<std::vector<T>>& b,
-        Edge<std::vector<R>>& h,
-        Edge<bool>& bk,
-        Edge<bool>& en,
-        Edge<bool>& ct
-    ) : index(idx), iterand(iter), interval(step),
-        body(b), history(h), back(bk), end(en), cont(ct) {}
+        NodeT& _node,
+        Edge<int>& _index,
+        Edge<std::optional<T>>& _elem,
+        Edge<int>& _interval,
+        Edge<std::vector<T>>& _body,
+        Edge<std::vector<R>>& _history,
+        Edge<bool>& _back,
+        Edge<bool>& _end,
+        Edge<bool>& _cont
+    ) : node(_node), index(_index), elem(_elem), interval(_interval),
+        body(_body), history(_history), back(_back), end(_end), cont(_cont) {
+        
+        // Initialize the node with all the edges
+        node["index"] = index;
+        node["elem"] = elem;
+        node["interval"] = interval;
+        node["body"] = body;
+        node["history"] = history;
+        node["back"] = back;
+        node["end"] = end;
+        node["cont"] = cont;
+    }
 
     // Converts actionFn(Node) -> R
     auto iterationAction(std::function<R(NodeT&)> actionFn, NodeT& node) {
@@ -50,7 +66,12 @@ public:
                 return false;
             }
             index.set(next);
-            iterand.set(body.get()[index.get()]);
+            elem.set(body.get()[index.get()]); // Fixed: was 'iterand', should be 'elem'
+            
+            // Update the node with new values
+            node["index"] = index;
+            node["elem"] = elem;
+            
             return true;
         });
     }
@@ -63,8 +84,14 @@ public:
                 return false;
             }
             index.set(prev);
-            iterand.set(body.get()[index.get()]);
+            elem.set(body.get()[index.get()]); // Fixed: was 'iterand', should be 'elem'
             back.set(false);
+            
+            // Update the node with new values
+            node["index"] = index;
+            node["elem"] = elem;
+            node["back"] = back;
+            
             return true;
         });
     }
@@ -84,7 +111,7 @@ public:
 template <typename T, typename R, typename NodeT>
 template <typename ActionFn>
 TailCall<std::vector<R>> Iterator<T, R, NodeT>::iterating(ActionFn actionFn, NodeT& node) {
-    return TailCall<std::vector<R>>([this, &actionFn, &node]() -> std::variant<std::function<TailCall<std::vector<R>>()> , std::vector<R>> {
+    return TailCall<std::vector<R>>([this, &actionFn, &node]() -> std::variant<std::function<TailCall<std::vector<R>>()>, std::vector<R>> {
         if (back.get()) {
             return wrap_history(this->backtracking(actionFn, node).run());
         }
@@ -95,8 +122,13 @@ TailCall<std::vector<R>> Iterator<T, R, NodeT>::iterating(ActionFn actionFn, Nod
         if (!valid) return wrap_history(history.get());
 
         auto h = history.get();
-        if (iterand.get()) h.push_back(iterationAction(actionFn, node));
+        if (elem.get().has_value()) { // Fixed: was 'iterand', should be 'elem', and check if optional has value
+            h.push_back(iterationAction(actionFn, node));
+        }
         history.set(h);
+        
+        // Update node with new history
+        this->node["history"] = history;
 
         return [this, &actionFn, &node]() { return this->iterating(actionFn, node); };
     });
@@ -105,13 +137,18 @@ TailCall<std::vector<R>> Iterator<T, R, NodeT>::iterating(ActionFn actionFn, Nod
 template <typename T, typename R, typename NodeT>
 template <typename ActionFn>
 TailCall<std::vector<R>> Iterator<T, R, NodeT>::backtracking(ActionFn actionFn, NodeT& node) {
-    return TailCall<std::vector<R>>([this, &actionFn, &node]() -> std::variant<std::function<TailCall<std::vector<R>>()> , std::vector<R>> {
+    return TailCall<std::vector<R>>([this, &actionFn, &node]() -> std::variant<std::function<TailCall<std::vector<R>>()>, std::vector<R>> {
         auto valid = backtrack().run();
         if (!valid) return wrap_history(history.get());
 
         auto h = history.get();
-        if (!h.empty() && iterand.get()) h.back() = iterationAction(actionFn, node);
+        if (!h.empty() && elem.get().has_value()) { // Fixed: was 'iterand', should be 'elem', and check if optional has value
+            h.back() = iterationAction(actionFn, node);
+        }
         history.set(h);
+        
+        // Update node with new history
+        this->node["history"] = history;
 
         return [this, &actionFn, &node]() { return this->iterating(actionFn, node); };
     });

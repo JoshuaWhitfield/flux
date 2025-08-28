@@ -9,17 +9,19 @@
 #include <regex>
 #include <numeric>
 
-#include "../../../util/headers/debug.h"
-#include "../../../util/headers/arrays.h"
-#include "../../../util/headers/strings.h"
-#include "../../tokens/headers/lexer_token.h"
-#include "../../types/headers/lexer_types.h"
+#include "../../../util/headers/debug.h" // print exit
+#include "../../../util/headers/arrays.h" // slice join
+#include "../../../util/headers/strings.h" // str_slice split
+#include "../../tokens/headers/lexer_token.h" // LexerToken
+#include "../../types/headers/lexer_types.h" // LexerTypes
+#include "../../lexer/headers/token_constants.h" // ObjectCategory ...
 
-#include "../../../functional/control_flow/ffor.h"
-#include "../../../functional/control_flow/fwhile.h"
-#include "../../../functional/control_flow/fif.h"
-#include "../../../functional/control_flow/bincase.h"
-#include "../../../functional/operators/structure/ffltr.h"
+#include "../../../functional/control_flow/ffor.h" // ffor extract_edge
+#include "../../../functional/control_flow/fwhile.h" // fwhile 
+#include "../../../functional/control_flow/fif.h" // fif 
+#include "../../../functional/control_flow/bincase.h" // bincase
+#include "../../../functional/operators/structure/ffltr.h" // ffltr
+#include "../../../functional/models/edge.h" // Edge
 
 template<typename T>
 inline bool match_object(
@@ -35,22 +37,33 @@ inline bool match_object(
             auto results = ffor<T, bool>(
                 objects,
                 [&](Node& node) -> bool {
-                    auto& elem = node.getAs<Edge<std::optional<T>>>("elem");
+                    T elem;
+                    auto& elemEdge = extract_edge<Edge, std::optional<T>>(node, "elem"); // Edge<std::optional<T>>&
+                    auto& elemOpt  = elemEdge.get();                                      // std::optional<T>&
+                    fif(
+                        [&] { return elemOpt.has_value(); },
+                        [&] {
+                            elem = elemOpt.value();
+                            return true;
+                        },
+                        [&] { return false; }
+                    );
+
                     return fif(
-                        [&] { return input.size() >= elem.get()->text.size(); },
+                        [&] { return input.size() >= elem.text.size(); },
                         [&] {
                             return fif(
-                                [&] { return input.substr(0, elem.get()->text.size()) == elem.get()->text; },
+                                [&] { return input.substr(0, elem.text.size()) == elem.text; },
                                 [&] {
                                     return fif(
                                         [&] {
-                                            return (input.size() == elem.get()->text.size()) ||
-                                                   (!std::isalnum(static_cast<unsigned char>(input[elem.get()->text.size()])) &&
-                                                    input[elem.get()->text.size()] != '_');
+                                            return (input.size() == elem.text.size()) ||
+                                                   (!std::isalnum(static_cast<unsigned char>(input[elem.text.size()])) &&
+                                                    input[elem.text.size()] != '_');
                                         },
                                         [&] {
-                                            token_output.emplace_back(elem.get()->text, elem.get()->type, current_line);
-                                            consume_chars(elem.get()->text.size());
+                                            token_output.emplace_back(elem.text, elem.type, current_line);
+                                            consume_chars(elem.text.size());
                                             return true;
                                         },
                                         [] { return false; }
@@ -71,12 +84,7 @@ inline bool match_object(
     );
 }
 
-// Template function to extract value from Edge<std::optional<T>>
 template<typename T>
-T extract_edge_val(Node& node, const std::string& key) {
-    return node.getAs<Edge<std::optional<T>>>(key).get().get();
-}
-
 struct Lexer {
     std::string input;
     std::vector<LexerToken> token_output;
@@ -92,113 +100,11 @@ struct Lexer {
     inline void consume_chars(size_t n) { input.erase(input.begin(), input.begin() + std::min(n, input.size())); }
     inline void set_input(const std::string& _input) { input = _input; current_line = 0; }
 
-    template <typename T>
     inline std::optional<LexerToken> tokenize() {
         // Loop while input remains
         // auto check_objects = [&](auto& objects) { return match_object(objects, input, token_output, [&](size_t n) { consume_chars(n); }, current_line); };
-        struct ObjectCategory { std::string text; std::string type; };
-        std::vector<ObjectCategory> declaratives = {
-            {"fif",      LexerTypes::DECL()},
-            {"ffor",     LexerTypes::DECL()},
-            {"fwhile",   LexerTypes::DECL()},
-            {"fim",      LexerTypes::DECL()},
-            {"feq",      LexerTypes::DECL()},
-            {"fneq",     LexerTypes::DECL()},
-            {"fgeq",     LexerTypes::DECL()},
-            {"fleq",     LexerTypes::DECL()},
-            {"fgt",      LexerTypes::DECL()},
-            {"flt",      LexerTypes::DECL()},
-            {"fpeq",     LexerTypes::DECL()},
-            {"fseq",     LexerTypes::DECL()},
-            {"fmeq",     LexerTypes::DECL()},
-            {"fdeq",     LexerTypes::DECL()},
-            {"fmdeq",    LexerTypes::DECL()},
-            {"fxeq",     LexerTypes::DECL()},
-            {"fmin",     LexerTypes::DECL()},
-            {"fadd",     LexerTypes::DECL()},
-            {"fmul",     LexerTypes::DECL()},
-            {"fdiv",     LexerTypes::DECL()},
-            {"fmod",     LexerTypes::DECL()},
-            {"fexp",     LexerTypes::DECL()},
-            {"finc",     LexerTypes::DECL()},
-            {"fdec",     LexerTypes::DECL()},
-            {"bincase",  LexerTypes::DECL()},
-            {"assert",   LexerTypes::DECL()},
-            {"callable", LexerTypes::DECL()},
-            {"type",     LexerTypes::DECL()},
-            {"fcat",     LexerTypes::DECL()}
-        };
-        std::vector<ObjectCategory> decl_methods = {
-            {".ffor",  LexerTypes::DECL_METHOD()}, // functor map operation w/ backtracking
-            {".ffltr", LexerTypes::DECL_METHOD()}, // functor filter by comparator expression
-            {".fred",  LexerTypes::DECL_METHOD()}, // functor reduce values
-            {".ffind", LexerTypes::DECL_METHOD()}, // functional find first-match predicate functor
-            {".fallm", LexerTypes::DECL_METHOD()}, // functional all match predicate functor
-            {".fnonm", LexerTypes::DECL_METHOD()}, // functional none match predicate functor
-            {".fsort", LexerTypes::DECL_METHOD()}, // functional reorder by comparator
-            {".fmini", LexerTypes::DECL_METHOD()}, // functional get maximum from set w/ functor
-            {".fmaxi", LexerTypes::DECL_METHOD()}, // functional get minimum from set w/ functor
-            {".last",  LexerTypes::DECL_METHOD()}, // functional get last array index (every type is iterable)
-            {".first", LexerTypes::DECL_METHOD()}, // functional get first array index (every type is iteralbe)
-            {".pipe",  LexerTypes::DECL_METHOD()}, // functional operate on one value with chain of functions. produce value. requires new iterator
-        };
-        std::vector<ObjectCategory> graphs = {
-            {"runtime",  LexerTypes::GRAPH_REF()},
-            {"express",  LexerTypes::GRAPH_REF()},
-            {"deserial", LexerTypes::GRAPH_REF()},
-            {"serial",   LexerTypes::GRAPH_REF()},
-            {"write",    LexerTypes::GRAPH_REF()},
-            /* non forward-facing graphs 
-            {"depend", LexerTypes::GRAPH_REF()},
-            {"namespace", LexerTypes::GRAPH_REF()},
-            {"scope", LexerTypes::GRAPH_REF()}
-            */
-        };
-        std::vector<ObjectCategory> core_funcs = {
-            {"print", LexerTypes::CORE_FUNC()}, // print statement to std::cout
-            {"input", LexerTypes::CORE_FUNC()}, // input statement to std::cin
-            {"len",   LexerTypes::CORE_FUNC()}, // length statement returned
-            {"type",  LexerTypes::CORE_FUNC()}, // type statement returned
-            {"panic", LexerTypes::CORE_FUNC()}  // exit statement with std::exit(0)
-        };
-        std::vector<ObjectCategory> normalizers = {
-            {"constr", LexerTypes::NORMALIZER()}, // class constructor (function in frontend)
-            {"not",    LexerTypes::NORMALIZER()}, // evaluates the opposite of the truthiness of its passed parameter
-            {"det",    LexerTypes::NORMALIZER()}, // evaluates the direct truthiness of its passed parameter
-            {"new",    LexerTypes::NORMALIZER()}, // new normalizes class from definition to a live object instance
-        };
-        std::vector<ObjectCategory> keywords = {
-            {"return",  LexerTypes::KEYWORD()}, // return statement (optional do to assert() variation)
-            {"case",    LexerTypes::KEYWORD()}, // case: function call under hood (ffltr), linear switch case
-            {"concede", LexerTypes::KEYWORD()}, // in the case selectors placed in params return falsey, you may concede (void return)
-         // {"default", LexerTypes::KEYWORD()}  // default case uneccessary, just goes last
-        };
-        std::vector<ObjectCategory> selectors = {
-            {"or",  LexerTypes::SELECTOR()}, // allows 'or' selection of values by truthiness. bitwise with selector(..., true) (function frontend & backend)
-            {"and", LexerTypes::SELECTOR()}, // allows 'and' selection of values by truthiness. bitwise with selector(..., true) (function frontend & backend)
-            {"xor", LexerTypes::SELECTOR()}, // allows 'xor' selection of values by truthiness. bitwise with selector(..., true) (function frontend & backend)
-        };
-        std::vector<ObjectCategory> functions = {
-            {"func ", LexerTypes::FUNC()}, // standard function declaration
-            {"=>", LexerTypes::ANON_FUNC()} // anonymous function declaration
-        };
-        std::vector<ObjectCategory> identifiers = { // custom
-            {"const ", LexerTypes::CONST()}, // constnt identifier declaration
-            {"let ", LexerTypes::LET()} // mutable identifier declaration
-        };
-        std::vector<ObjectCategory> assignments = {
-            {"=", LexerTypes::ASSIGN()}, // scope assignment operator
-            {":", LexerTypes::ASSIGN()}, // object assignment operator
-        };
-        std::vector<ObjectCategory> booleans = {
-            {"true",  LexerTypes::BOOL()}, // true boolean
-            {"false", LexerTypes::BOOL()}, // false boolean
-        };
-        std::vector<ObjectCategory> classes = {
-            {"class", LexerTypes::CLASS()},
-        };
-        
-        return fwhile(
+
+        return fwhile<bool, bool>(
             [&] { return !input.empty(); },
             [&] {
                 return bincase(
@@ -221,7 +127,7 @@ struct Lexer {
                                         return fif([&] { return input.size() >= 2 && input[0] == '/' && input[1] == '*'; },
                                             [&] {
                                                 size_t i = 2, newline_count = 0;
-                                                fwhile<int>(
+                                                fwhile<bool, bool>(
                                                     [&] { return (i + 1 < input.size()) && (!(input[i] == '*' && input[i + 1] == '/')); },
                                                     [&] {
                                                         return fif(
@@ -247,19 +153,20 @@ struct Lexer {
                                                 // capture single-line comments
                                                 return fif([&] { return input.size() >= 2 && input[0] == '/' && input[1] == '/'; },
                                                     [&] {
-                                                        size_t i;
+                                                        int i;
                                                         std::vector<size_t> indices(input.size() - 2); // -2 because we start at position 2
                                                         std::iota(indices.begin(), indices.end(), 2);  // Fill with values 2, 3, 4, ...
 
-                                                        ffor(indices, std::function<bool(Node&)>([&](Node& node) {
-                                                            size_t current_pos = extract_edge_val<size_t>(node, "elem");
-                                                            i = current_pos;
+                                                        ffor<size_t, bool>(indices, [&](Node& node) -> bool {
+                                                            auto& current_pos_edge = extract_edge<Edge, int>(node, "index"); // Edge<int>&
+                                                            i = current_pos_edge.get(); // unwrap Edge<int>
+
                                                             if (input[i] == '\n') {
                                                                 node.getAs<Edge<bool>>("end").set(true);
                                                                 return true;
                                                             }
                                                             return false;
-                                                        }));
+                                                        });
                                                         add_token(LexerToken("//", LexerTypes::COMMENT_START(), current_line));
                                                         add_token(LexerToken(str_slice(input, 2, i), LexerTypes::COMMENT(), current_line));
                                                         consume_chars(i);
@@ -406,13 +313,23 @@ struct Lexer {
                                                                                                                                                     [&] { return true; },
                                                                                                                                                     [&] {
                                                                                                                                                         bool matched_function = false;
-                                                                                                                                                        ffor(
+                                                                                                                                                        ffor<T, bool>(
                                                                                                                                                             functions,
                                                                                                                                                             [&](Node& node) {
-                                                                                                                                                                auto elem = node.getAs<Edge<std::optional<T>>>("elem").get();
-                                                                                                                                                                
+                                                                                                                                                                T elem;
+                                                                                                                                                                auto& elemEdge = extract_edge<Edge, std::optional<T>>(node, "elem"); // Edge<std::optional<T>>&
+                                                                                                                                                                auto& elemOpt  = elemEdge.get();                                      // std::optional<T>&
+                                                                                                                                                                fif(
+                                                                                                                                                                    [&] { return elemOpt.has_value(); },
+                                                                                                                                                                    [&] {
+                                                                                                                                                                        elem = elemOpt.value();
+                                                                                                                                                                        return true;
+                                                                                                                                                                    },
+                                                                                                                                                                    [&] { return false; }
+                                                                                                                                                                );
+
                                                                                                                                                                 bool assert_func_found = fif(
-                                                                                                                                                                    [&] { input.substr(0, elem.text.size()) == elem.text; },
+                                                                                                                                                                    [&] { return input.substr(0, elem.text.size()) == elem.text; },
                                                                                                                                                                     [&] { return true; },
                                                                                                                                                                     [&] { return false; }
                                                                                                                                                                 );
@@ -457,10 +374,20 @@ struct Lexer {
                                                                                                                                                             [&] { return true; },
                                                                                                                                                             [&] {
                                                                                                                                                                 bool matched_identifier = false;
-                                                                                                                                                                ffor(
+                                                                                                                                                                ffor<T, bool>(
                                                                                                                                                                     identifiers,
                                                                                                                                                                     [&](Node& node) {
-                                                                                                                                                                        auto elem = node.getAs<Edge<std::optional<T>>>("elem").get();
+                                                                                                                                                                        T elem;
+                                                                                                                                                                        auto& elemEdge = extract_edge<Edge, std::optional<T>>(node, "elem"); // Edge<std::optional<T>>&
+                                                                                                                                                                        auto& elemOpt  = elemEdge.get();                                      // std::optional<T>&
+                                                                                                                                                                        fif(
+                                                                                                                                                                            [&] { return elemOpt.has_value(); },
+                                                                                                                                                                            [&] {
+                                                                                                                                                                                elem = elemOpt.value();
+                                                                                                                                                                                return true;
+                                                                                                                                                                            },
+                                                                                                                                                                            [&] { return false; }
+                                                                                                                                                                        );
                                                                                                                                                                         return bincase(
                                                                                                                                                                             [&] { return input.substr(0, elem.text.size()) == elem.text; },
                                                                                                                                                                             [&] {

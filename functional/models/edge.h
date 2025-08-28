@@ -23,7 +23,7 @@ public:
     }
 
     // Accessors
-    T get() const { return value; }
+    const T& get() const { return value; }
     T getOrigin() const { return origin; }
     std::vector<T> getHistory() const { return history; }
     size_t getLength() const { return history.size(); }

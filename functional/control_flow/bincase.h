@@ -2,27 +2,30 @@
 #define BINCASE_H
 
 #include "callable.h" // invoke_if_callable callable
+#include "fif.h"        // fif functional if
 #include <tuple>
 #include <type_traits>
 #include <utility>
+#include <variant>
 
-// Bincase implementation
+// Simplified fif: condition can be bool, callable returning bool, or callable returning void
 template <typename Cond, typename OnSuccess, typename OnFailure>
 inline auto bincase(Cond conditional, OnSuccess onSuccess, OnFailure onFailure) {
-
-    auto cond_result = [&] {
+    // Evaluate conditional: call if callable, otherwise use literal
+    auto cond_result = [&]() {
         if constexpr (callable(conditional)) {
-            return conditional();
+            return conditional();  // only call if callable
         } else {
-            return conditional; // literal value
+            return conditional;    // just a literal
         }
     }();
 
-    if (cond_result) {
-        return invoke_if_callable(onSuccess);
-    } else {
-        return invoke_if_callable(onFailure);
-    }
+    // Now cond_result is true/false, so fif works correctly
+    return fif(
+        [&] { return cond_result; },        // condition lambda
+        [&] { return invoke_if_callable(onSuccess); }, // true branch
+        [&] { return invoke_if_callable(onFailure); }  // false branch
+    );
 }
 
 #endif // BINCASE_H

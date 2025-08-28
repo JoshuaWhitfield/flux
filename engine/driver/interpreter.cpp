@@ -6,6 +6,7 @@
 #include "../../syntax/lexer/headers/lexer.h"
 #include "../../syntax/tokens/headers/lexer_token.h"
 #include "../../util/headers/debug.h" // print
+#include "../../syntax/lexer/headers/token_constants.h" // ObjectCategories ...
 
 // Function to read a .fx file
 std::string read_fx_file(const std::string& relative_path) {
@@ -46,9 +47,9 @@ int main() {
     std::string input(content.begin(), content.end());
 
     if (!content.empty()) {
-        Lexer lexer;
+        Lexer<ObjectCategory> lexer;
         lexer.input = input; // Make sure Lexer has a public 'input' member
-        lexer.tokenize<Node>(); // This works if tokenize<T>() is defined for Node
+        lexer.tokenize(); // This works if tokenize<T>() is defined for Node
         write_tokens(lexer.token_output, output_path); // Make sure token_output is public
     }
 

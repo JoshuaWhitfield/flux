@@ -1,27 +1,46 @@
 #ifndef FWHILE_H
 #define FWHILE_H
 
-#include <functional>
 #include "../iterators/break_fit.h"
-#include "../models/node.h"
+#include <functional>
+#include <variant>
 
-template <typename T, typename ConditionFn, typename ActionFn>
-inline void fwhile(
-    ConditionFn condition,     // condition predicate
-    ActionFn actionFn      // action function
-) {
-    BreakIterator<T, T> iterator;
+// Functional while loop returning bool
+template <typename ConditionFn, typename ActionFn>
+bool fwhile(ConditionFn condition, ActionFn actionFn) {
+    BreakIterator iterator;
+    bool finalResult = false;
 
-    iterator.iterate([&]() {
-        // evaluate user-provided condition
-        if (!condition()) {
-            iterator.setEnd(true);   // break loop
-            return;
-        }
+    // Wrap iteration as TailCall
+    std::function<TailCall<bool>()> loop = [&]() -> TailCall<bool> {
+        return TailCall<bool>([&]() -> bool {
+            // Evaluate condition
+            if constexpr (std::is_invocable_v<ConditionFn>) {
+                if (!condition()) {
+                    iterator.setEnd(true);
+                    return finalResult;
+                }
+            } else {
+                if (!condition) {
+                    iterator.setEnd(true);
+                    return finalResult;
+                }
+            }
 
-        // run user-provided action
-        actionFn(); // return value ignored
-    });
+            // Run action
+            finalResult = actionFn();
+
+            // Recursive call
+            auto next = iterator.iterate(actionFn);
+            if (std::holds_alternative<std::function<TailCall<bool>()>>(next)) {
+                return std::get<std::function<TailCall<bool>()>>(next)().func();
+            } else {
+                return finalResult;
+            }
+        });
+    };
+
+    return loop().func(); // execute loop
 }
 
 #endif // FWHILE_H

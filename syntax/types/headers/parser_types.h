@@ -11,6 +11,9 @@ struct ParserTypes {
     inline static std::string INTEGER_LITERAL() { return "INTEGER_LITERAL"; }
     inline static std::string FLOAT_LITERAL() { return "FLOAT_LITERAL"; }
     inline static std::string BOOLEAN_LITERAL() { return "BOOLEAN_LITERAL"; }
+    
+    // ===== Comments =====
+    inline static std::string COMMENT_BODY() { return "COMMENT_BODY"; }
 
     // ===== Data Structures =====
     inline static std::string ARRAY_LITERAL() { return "ARRAY_LITERAL"; }
@@ -56,6 +59,8 @@ struct ParserTypes {
     inline static std::string OR() { return "OR"; } // or()
     inline static std::string AND() { return "AND"; } // and()
     inline static std::string XOR() { return "XOR"; } // xor()
+    
+    // ===== Graphs =====
 
     /*
 
@@ -70,8 +75,11 @@ struct ParserTypes {
     inline static std::string DET() { return "DETERMINE"; } // det()
     inline static std::string NOT() { return "NOT"; } // not()
 
+    // ===== References =====
+    inline static std::string VARIABLE_REF() { return "VARIABLE_REFERENCE"; }
+    inline static std::string FUNCTION_REF() { return "FUNCTION_REFERENCE"; }
+    
     // ===== Misc =====
-    inline static std::string REF() { return "REFERENCE"; }
     inline static std::string UNKNOWN() { return "UNKNOWN"; }
     inline static std::string ENDF() { return "ENDF"; }
 };
