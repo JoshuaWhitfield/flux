@@ -35,35 +35,19 @@ struct IteratorState {
 template <typename T, typename NodeT>
 class BreakIterator {
 public:
-    T index;
-    T step;
-    std::vector<T> body;
     IteratorState state;
-    std::function<void(NodeT&)> actionFn;
-
-    BreakIterator(T startIndex, T stepSize, std::vector<T> iterableBody,
-                  std::function<void(NodeT&)> action)
-        : index(startIndex), step(stepSize), body(std::move(iterableBody)), actionFn(std::move(action)) {}
 
     // Single iteration step
-    auto iterate(NodeT& node) {
-        // Use std::monostate as the "value" alternative of the variant
-        return TailCall<std::monostate>([this, &node]() -> std::variant<std::function<TailCall<std::monostate>()>, std::monostate> {
-            if (state.getEnd() || static_cast<size_t>(index) >= body.size()) {
-                state.setEnd(true);
-                return std::monostate{}; // terminate by returning the value variant
-            }
-
-            // Execute action (if callable)
-            if (callable(actionFn)) actionFn(node);
-
-            // Increment index
-            index += step;
-
+    template <typename ActionFn>
+    auto iterate(ActionFn actionFn) {
+        return TailCall<std::monostate>([this, actionFn]() -> std::variant<std::function<TailCall<std::monostate>()>, std::monostate> {
+            // Execute action (if callable), ignore return value
+            if (callable(actionFn)) { actionFn(); }
             // Tail-call next iteration
-            return [this, &node]() { return iterate(node); };
+            return [this, actionFn]() { return iterate(actionFn); };
         });
     }
+    // ...existing code...
 
     // Expose state getters/setters for frontend usage
     bool getEnd() const { return state.getEnd(); }

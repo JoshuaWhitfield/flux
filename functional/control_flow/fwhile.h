@@ -5,27 +5,22 @@
 #include "../iterators/break_fit.h"
 #include "../models/node.h"
 
-template <typename Container>
+template <typename T, typename ConditionFn, typename ActionFn>
 inline void fwhile(
-    std::function<bool(Node&)> condition,     // condition predicate
-    std::function<void(Node&)> actionFn,      // action function
-    Container& iterable,
-    int startAt = 0,
-    int jump = 1
+    ConditionFn condition,     // condition predicate
+    ActionFn actionFn      // action function
 ) {
-    Node node(iterable);
+    BreakIterator<T, T> iterator;
 
-    BreakIterator iterator(startAt, jump, iterable);
-
-    iterator.iterate(node, [&](Node& n) {
+    iterator.iterate([&]() {
         // evaluate user-provided condition
-        if (!condition(n)) {
-            iterator.getState().setEnd(true);   // break loop
+        if (!condition()) {
+            iterator.setEnd(true);   // break loop
             return;
         }
 
         // run user-provided action
-        actionFn(n);
+        actionFn(); // return value ignored
     });
 }
 

@@ -31,10 +31,9 @@ void write_tokens(const std::vector<LexerToken>& tokens, const std::string& out_
     out << "Tokenization results:\n\n";
     for (const auto& token : tokens) {
         out << "Token(text=\"" << token.value 
-            << "\", type=\"" << token.type << "\")\n"
+            << "\", type=\"" << token.type 
             << "\", line=\"" << token.line << "\")\n";
     }
-
     out.close();
     std::cout << "Tokens written to " << out_path << std::endl;
 }
@@ -47,12 +46,10 @@ int main() {
     std::string input(content.begin(), content.end());
 
     if (!content.empty()) {
-        Lexer<char> lexer;
-        lexer.set_input(input);
-        lexer.tokenize();
-
-        // Write tokenization results to file
-        write_tokens(lexer.token_output, output_path);
+        Lexer lexer;
+        lexer.input = input; // Make sure Lexer has a public 'input' member
+        lexer.tokenize<Node>(); // This works if tokenize<T>() is defined for Node
+        write_tokens(lexer.token_output, output_path); // Make sure token_output is public
     }
 
     return 0;

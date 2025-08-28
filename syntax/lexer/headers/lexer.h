@@ -7,6 +7,7 @@
 #include <optional>
 #include <cctype>
 #include <regex>
+#include <numeric>
 
 #include "../../../util/headers/debug.h"
 #include "../../../util/headers/arrays.h"
@@ -70,6 +71,12 @@ inline bool match_object(
     );
 }
 
+// Template function to extract value from Edge<std::optional<T>>
+template<typename T>
+T extract_edge_val(Node& node, const std::string& key) {
+    return node.getAs<Edge<std::optional<T>>>(key).get().get();
+}
+
 struct Lexer {
     std::string input;
     std::vector<LexerToken> token_output;
@@ -85,9 +92,10 @@ struct Lexer {
     inline void consume_chars(size_t n) { input.erase(input.begin(), input.begin() + std::min(n, input.size())); }
     inline void set_input(const std::string& _input) { input = _input; current_line = 0; }
 
+    template <typename T>
     inline std::optional<LexerToken> tokenize() {
         // Loop while input remains
-        auto check_objects = [&](auto& objects) { return match_object(objects, input, token_output, [&](size_t n) { consume_chars(n); }, current_line); };
+        // auto check_objects = [&](auto& objects) { return match_object(objects, input, token_output, [&](size_t n) { consume_chars(n); }, current_line); };
         struct ObjectCategory { std::string text; std::string type; };
         std::vector<ObjectCategory> declaratives = {
             {"fif",      LexerTypes::DECL()},
@@ -213,24 +221,24 @@ struct Lexer {
                                         return fif([&] { return input.size() >= 2 && input[0] == '/' && input[1] == '*'; },
                                             [&] {
                                                 size_t i = 2, newline_count = 0;
-                                                fwhile(
-                                                    [&] { return (i + 1 < input.size()) && (!(input[i] == '*' && input[i + 1] == '/')); }
+                                                fwhile<int>(
+                                                    [&] { return (i + 1 < input.size()) && (!(input[i] == '*' && input[i + 1] == '/')); },
                                                     [&] {
                                                         return fif(
-                                                            [&] { input[i] == '\n'; },
+                                                            [&] { return input[i] == '\n'; },
                                                             [&] {
                                                                 newline_count++;
                                                                 i++;
                                                                 return true;
                                                             },
-                                                            [&] { return false; },
-                                                        )
+                                                            [&] { return false; }
+                                                        );
                                                     }
                                                 );
                                                 add_token(LexerToken("/*", LexerTypes::COMMENT_START(), current_line));
                                                 add_token(LexerToken(str_slice(input, 2, i), LexerTypes::COMMENT(), current_line));
                                                 current_line += newline_count;
-                                                return fif([&] { ((i + 1) < input.size()); },
+                                                return fif([&] { return ((i + 1) < input.size()); },
                                                     [&] { add_token(LexerToken("*/", LexerTypes::COMMENT_END(), current_line)); consume_chars(i + 2); return true; },
                                                     [&] { consume_chars(input.size()); return false; }
                                                 );
@@ -239,11 +247,19 @@ struct Lexer {
                                                 // capture single-line comments
                                                 return fif([&] { return input.size() >= 2 && input[0] == '/' && input[1] == '/'; },
                                                     [&] {
-                                                        size_t i = 0;
-                                                        ffor<size_t>(std::vector<size_t>(input.size()), [&](Node& n) {
-                                                            i = n.getAs<Edge<size_t>>("elem").get();
-                                                            return fif([&] { return input[i] != '\n'; }, [] { return true; }, [] { return false; });
-                                                        });
+                                                        size_t i;
+                                                        std::vector<size_t> indices(input.size() - 2); // -2 because we start at position 2
+                                                        std::iota(indices.begin(), indices.end(), 2);  // Fill with values 2, 3, 4, ...
+
+                                                        ffor(indices, std::function<bool(Node&)>([&](Node& node) {
+                                                            size_t current_pos = extract_edge_val<size_t>(node, "elem");
+                                                            i = current_pos;
+                                                            if (input[i] == '\n') {
+                                                                node.getAs<Edge<bool>>("end").set(true);
+                                                                return true;
+                                                            }
+                                                            return false;
+                                                        }));
                                                         add_token(LexerToken("//", LexerTypes::COMMENT_START(), current_line));
                                                         add_token(LexerToken(str_slice(input, 2, i), LexerTypes::COMMENT(), current_line));
                                                         consume_chars(i);
@@ -263,7 +279,7 @@ struct Lexer {
                                                                         return true;
                                                                     },
                                                                     [&] { return false; }
-                                                                )
+                                                                );
                                                                 
                                                             },
                                                             [&] {
@@ -303,7 +319,7 @@ struct Lexer {
                                                                                     match_object(
                                                                                         assignments,
                                                                                         input,
-                                                                                        output_tokens,
+                                                                                        token_output,
                                                                                         current_line,
                                                                                         [&](size_t n) { consume_chars(n); }
                                                                                     ),
@@ -311,9 +327,9 @@ struct Lexer {
                                                                                     [&] {
                                                                                         return fif(
                                                                                             match_object(
-                                                                                                class,
+                                                                                                classes,
                                                                                                 input,
-                                                                                                output_tokens,
+                                                                                                token_output,
                                                                                                 current_line,
                                                                                                 [&](size_t n) { consume_chars(n); }
                                                                                             ),
@@ -333,7 +349,7 @@ struct Lexer {
                                                                                                             match_object(
                                                                                                                 keywords,
                                                                                                                 input,
-                                                                                                                output_tokens,
+                                                                                                                token_output,
                                                                                                                 current_line,
                                                                                                                 [&](size_t n) { consume_chars(n); }
                                                                                                             ),
@@ -393,7 +409,7 @@ struct Lexer {
                                                                                                                                                         ffor(
                                                                                                                                                             functions,
                                                                                                                                                             [&](Node& node) {
-                                                                                                                                                                auto elem = node["elem"].get<T>();
+                                                                                                                                                                auto elem = node.getAs<Edge<std::optional<T>>>("elem").get();
                                                                                                                                                                 
                                                                                                                                                                 bool assert_func_found = fif(
                                                                                                                                                                     [&] { input.substr(0, elem.text.size()) == elem.text; },
@@ -443,8 +459,8 @@ struct Lexer {
                                                                                                                                                                 bool matched_identifier = false;
                                                                                                                                                                 ffor(
                                                                                                                                                                     identifiers,
-                                                                                                                                                                    [&] {
-                                                                                                                                                                        auto elem = node["elem"].get<T>();
+                                                                                                                                                                    [&](Node& node) {
+                                                                                                                                                                        auto elem = node.getAs<Edge<std::optional<T>>>("elem").get();
                                                                                                                                                                         return bincase(
                                                                                                                                                                             [&] { return input.substr(0, elem.text.size()) == elem.text; },
                                                                                                                                                                             [&] {
@@ -458,7 +474,7 @@ struct Lexer {
                                                                                                                                                                                         std::string identifier = match[1];
                                                                                                                                                                                         add_token(LexerToken(identifier, elem.type, current_line));
                                                                                                                                                                                         
-                                                                                                                                                                                        size_t = total_matched = elem.text.size() + match.length(0);
+                                                                                                                                                                                        size_t total_matched = elem.text.size() + match.length(0);
                                                                                                                                                                                         consume_chars(total_matched);
 
                                                                                                                                                                                         matched_identifier = true;
@@ -467,7 +483,7 @@ struct Lexer {
                                                                                                                                                                                     [&] {return false;}
                                                                                                                                                                                 );
                                                                                                                                                                             },
-                                                                                                                                                                            [&] { return false; },
+                                                                                                                                                                            [&] { return false; }
                                                                                                                                                                         );
                                                                                                                                                                     }
                                                                                                                                                                 );
@@ -478,25 +494,25 @@ struct Lexer {
                                                                                                                                                                     [&] {
                                                                                                                                                                         return fif(
                                                                                                                                                                             // capture commas
-                                                                                                                                                                            [&] { input[0] == ','; },
+                                                                                                                                                                            [&] { return input[0] == ','; },
                                                                                                                                                                             [&] {
                                                                                                                                                                                 return fif(
-                                                                                                                                                                                    [&] { return static_cast<bool>(consume()); },
+                                                                                                                                                                                    [&] { return true; },
                                                                                                                                                                                     [&] { 
-                                                                                                                                                                                        add_token(LexerToken(std::string(1, *c), LexerTypes::COMMA(), current_line));
+                                                                                                                                                                                        add_token(LexerToken(std::string(1, static_cast<char>(*consume())), LexerTypes::COMMA(), current_line));
                                                                                                                                                                                         return true; 
                                                                                                                                                                                     },
-                                                                                                                                                                                    [&] { return false; },
+                                                                                                                                                                                    [&] { return false; }
                                                                                                                                                                                 );
                                                                                                                                                                             },
                                                                                                                                                                             [&] {
                                                                                                                                                                                 return fif(
-                                                                                                                                                                                    [&] { input[0] == '['; },
+                                                                                                                                                                                    [&] { return input[0] == '['; },
                                                                                                                                                                                     [&] {
                                                                                                                                                                                         return fif(
-                                                                                                                                                                                            [&] { return static_cast<bool>(consume()); },
+                                                                                                                                                                                            [&] { return true; },
                                                                                                                                                                                             [&] {
-                                                                                                                                                                                                add_token(LexerToken(std::string(1, *c), LexerTypes::ARRAY_START(), current_line));
+                                                                                                                                                                                                add_token(LexerToken(std::string(1, static_cast<char>(*consume())), LexerTypes::ARRAY_START(), current_line));
                                                                                                                                                                                                 return true;
                                                                                                                                                                                             },
                                                                                                                                                                                             [&] { return false; }
@@ -504,54 +520,54 @@ struct Lexer {
                                                                                                                                                                                     },
                                                                                                                                                                                     [&] {
                                                                                                                                                                                         return fif(
-                                                                                                                                                                                            [&] { input[0] == ']'; },
+                                                                                                                                                                                            [&] { return input[0] == ']'; },
                                                                                                                                                                                             [&] {
                                                                                                                                                                                                 return fif(
-                                                                                                                                                                                                    [&] { return static_cast<bool>(consume()); },
+                                                                                                                                                                                                    [&] { return true; },
                                                                                                                                                                                                     [&] {
-                                                                                                                                                                                                        add_token(LexerToken(std::string(1, *c), LexerTypes::ARRAY_END(), current_line));
+                                                                                                                                                                                                        add_token(LexerToken(std::string(1, static_cast<char>(*consume())), LexerTypes::ARRAY_END(), current_line));
                                                                                                                                                                                                         return true;
                                                                                                                                                                                                     },
-                                                                                                                                                                                                    [&] { return false; },
+                                                                                                                                                                                                    [&] { return false; }
                                                                                                                                                                                                 );
                                                                                                                                                                                             },
                                                                                                                                                                                             [&] {
                                                                                                                                                                                                 return fif(
-                                                                                                                                                                                                    [&] { input[0] == '{'; },
+                                                                                                                                                                                                    [&] { return input[0] == '{'; },
                                                                                                                                                                                                     [&] {
                                                                                                                                                                                                         return fif(
-                                                                                                                                                                                                            [&] { return static_cast<bool>(consume()); },
+                                                                                                                                                                                                            [&] { return true; },
                                                                                                                                                                                                             [&] {
-                                                                                                                                                                                                                add_token(LexerToken(std::string(1, *c), LexerTypes::OBJECT_START(), current_line));
+                                                                                                                                                                                                                add_token(LexerToken(std::string(1, static_cast<char>(*consume())), LexerTypes::OBJECT_START(), current_line));
                                                                                                                                                                                                                 return true;
                                                                                                                                                                                                             },
-                                                                                                                                                                                                            [&] { return false; },
+                                                                                                                                                                                                            [&] { return false; }
                                                                                                                                                                                                         );
                                                                                                                                                                                                     },
                                                                                                                                                                                                     [&] {
                                                                                                                                                                                                         return fif(
-                                                                                                                                                                                                            [&] { input[0] == '}'; },
+                                                                                                                                                                                                            [&] { return input[0] == '}'; },
                                                                                                                                                                                                             [&] {
                                                                                                                                                                                                                 return fif(
-                                                                                                                                                                                                                    [&] { return static_cast<bool>(consume()); },
+                                                                                                                                                                                                                    [&] { return true; },
                                                                                                                                                                                                                     [&] {
-                                                                                                                                                                                                                        add_token(LexerToken(std::string(1, *c), LexerTypes::OBJECT_END(), current_line));
+                                                                                                                                                                                                                        add_token(LexerToken(std::string(1, static_cast<char>(*consume())), LexerTypes::OBJECT_END(), current_line));
                                                                                                                                                                                                                         return true;
                                                                                                                                                                                                                     },
-                                                                                                                                                                                                                    [&] { return false; },
+                                                                                                                                                                                                                    [&] { return false; }
                                                                                                                                                                                                                 );
                                                                                                                                                                                                             },
                                                                                                                                                                                                             [&] {
                                                                                                                                                                                                                 return fif(
-                                                                                                                                                                                                                    [&] {return input[0] == '('},
+                                                                                                                                                                                                                    [&] { return input[0] == '('; },
                                                                                                                                                                                                                     [&] {
                                                                                                                                                                                                                         return fif(
-                                                                                                                                                                                                                            [&] { return static_cast<bool>(consume()); },
+                                                                                                                                                                                                                            [&] { return true; },
                                                                                                                                                                                                                             [&] {
-                                                                                                                                                                                                                                add_token(LexerToken(std::string(1, *c), LexerTypes::TUPLE_START(), current_line));
+                                                                                                                                                                                                                                add_token(LexerToken(std::string(1, static_cast<char>(*consume())), LexerTypes::TUPLE_START(), current_line));
                                                                                                                                                                                                                                 return true;
                                                                                                                                                                                                                             },
-                                                                                                                                                                                                                            [&] { return false; },
+                                                                                                                                                                                                                            [&] { return false; }
                                                                                                                                                                                                                         );
                                                                                                                                                                                                                     },
                                                                                                                                                                                                                     [&] {
@@ -559,12 +575,12 @@ struct Lexer {
                                                                                                                                                                                                                             [&] { return input[0] == ')'; },
                                                                                                                                                                                                                             [&] {
                                                                                                                                                                                                                                 return fif(
-                                                                                                                                                                                                                                    [&] { return static_cast<bool>(consume()); },
+                                                                                                                                                                                                                                    [&] { return true; },
                                                                                                                                                                                                                                     [&] {
-                                                                                                                                                                                                                                        add_token(LexerToken(std::string(1, *c), LexerTypes::TUPLE_END(), current_line));
+                                                                                                                                                                                                                                        add_token(LexerToken(std::string(1, static_cast<char>(*consume())), LexerTypes::TUPLE_END(), current_line));
                                                                                                                                                                                                                                         return true;
                                                                                                                                                                                                                                     },
-                                                                                                                                                                                                                                    [&] { return false; },
+                                                                                                                                                                                                                                    [&] { return false; }
                                                                                                                                                                                                                                 );
                                                                                                                                                                                                                             },
                                                                                                                                                                                                                             [&] {
@@ -572,37 +588,37 @@ struct Lexer {
                                                                                                                                                                                                                                     [&] { return input[0] == '@'; },
                                                                                                                                                                                                                                     [&] {
                                                                                                                                                                                                                                         return fif(
-                                                                                                                                                                                                                                            [&] { return static_cast<bool>(consume()); },
+                                                                                                                                                                                                                                            [&] { return true; },
                                                                                                                                                                                                                                             [&] {
-                                                                                                                                                                                                                                                add_token(LexerToken(std::string(1, *c), LexerTypes::REF(), current_line));
+                                                                                                                                                                                                                                                add_token(LexerToken(std::string(1, static_cast<char>(*consume())), LexerTypes::REF(), current_line));
                                                                                                                                                                                                                                                 return true;
                                                                                                                                                                                                                                             },
-                                                                                                                                                                                                                                            [&] { return false; },
+                                                                                                                                                                                                                                            [&] { return false; }
                                                                                                                                                                                                                                         );
                                                                                                                                                                                                                                     },
                                                                                                                                                                                                                                     [&] {
                                                                                                                                                                                                                                         // capture standard unexpected
                                                                                                                                                                                                                                         add_token(LexerToken(split(input, ' ')[0], LexerTypes::UNEXP(), current_line));
                                                                                                                                                                                                                                         return false;
-                                                                                                                                                                                                                                    },
+                                                                                                                                                                                                                                    }
                                                                                                                                                                                                                                 );
-                                                                                                                                                                                                                            },
+                                                                                                                                                                                                                            }
                                                                                                                                                                                                                         );
-                                                                                                                                                                                                                    },
+                                                                                                                                                                                                                    }
                                                                                                                                                                                                                 );
-                                                                                                                                                                                                            },
+                                                                                                                                                                                                            }
                                                                                                                                                                                                         );
-                                                                                                                                                                                                    },
+                                                                                                                                                                                                    }
                                                                                                                                                                                                 );
                                                                                                                                                                                             }
                                                                                                                                                                                         );
-                                                                                                                                                                                    },
+                                                                                                                                                                                    }
                                                                                                                                                                                 );
-                                                                                                                                                                            },
+                                                                                                                                                                            }
                                                                                                                                                                         );
-                                                                                                                                                                    },
+                                                                                                                                                                    }
                                                                                                                                                                 );
-                                                                                                                                                            },
+                                                                                                                                                            }
                                                                                                                                                         );
                                                                                                                                                     }
                                                                                                                                                 );
@@ -640,7 +656,7 @@ struct Lexer {
                 );
                 // capture standard unexpected
                 add_token(LexerToken(split(input, ' ')[0], LexerTypes::UNEXP(), current_line));
-                break;
+                return false;
             }
         );
 
@@ -648,6 +664,6 @@ struct Lexer {
         add_token(LexerToken("ENDF", LexerTypes::ENDF(), current_line));
         return std::nullopt;
     }
-}
+};
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
 #endif // LEXER_FUNCTIONAL_FULL_H

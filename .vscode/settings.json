@@ -56,7 +56,8 @@
         "charconv": "cpp",
         "forward_list": "cpp",
         "map": "cpp",
-        "iterator": "cpp"
+        "iterator": "cpp",
+        "type_traits": "cpp"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }
