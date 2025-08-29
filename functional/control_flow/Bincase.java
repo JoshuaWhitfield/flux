@@ -5,6 +5,7 @@ import static functional.control_flow.Fif.*;
 import functional.control_flow.Callables.VoidCallable;
 import functional.control_flow.Callables.BoolCallable;
 import functional.control_flow.Callables.AnyCallable;
+import java.util.function.BooleanSupplier;
 
 
 public class Bincase {
@@ -65,17 +66,17 @@ public class Bincase {
      * Handles an combination of literals and callables.
      */
 
-    public static <T> T bincase(Object conditional, Object onSuccess, Object onFailure) {
-        // Evaluate the conditional
-        boolean condResult = evaluateCondition(conditional);
+    // public static <T> T bincase(Object conditional, Object onSuccess, Object onFailure) {
+    //     // Evaluate the conditional
+    //     boolean condResult = evaluateCondition(conditional);
 
-        // Use fif to handle the branching
-        return fif(
-            () -> condResult,
-            () -> invokeIfCallable(onSuccess),
-            () -> invokeIfCallable(onFailure)
-        );
-    }
+    //     // Use fif to handle the branching
+    //     return fif(
+    //         () -> condResult,
+    //         () -> invokeIfCallable(onSuccess),
+    //         () -> invokeIfCallable(onFailure)
+    //     );
+    // }
 
     /**
      * Type-safe version with explicit Supplier types.
@@ -86,44 +87,43 @@ public class Bincase {
         Supplier<T> onSuccess,
         Supplier<T> onFailure    
     ) {
-        boolean condResult = conditional.getAsBoolean();
-        return fif(() -> condResult, onSuccess, onFailure);
+        //boolean condResult = conditional.getAsBoolean();
+        return fif(conditional, onSuccess, onFailure);
     }
 
     /**
      * Version with literal boolean condition.
      */
 
-    public static <T> T bincase(
-        boolean conditional,
-        Supplier<T> onSuccess,
-        Supplier<T> onFailure
-    ) {
-        return fif(() -> conditional, onSuccess, onFailure);
-    }
+    // public static <T> T bincase(
+    //     boolean conditional,
+    //     Supplier<T> onSuccess,
+    //     Supplier<T> onFailure
+    // ) {
+    //     return fif(conditional, onSuccess, onFailure);
+    // }
 
     /**
      * Version with mixed literal/callable parameters
      */
 
-    public static <T> T bincase(
-        boolean conditional,
-        T onSuccess,
-        T onFailure
-    ) {
-        return fif(() -> conditional, () -> onSuccess, () -> onFailure);
-    }
+    // public static <T> T bincase(
+    //     boolean conditional,
+    //     T onSuccess,
+    //     T onFailure
+    // ) {
+    //     return fif(conditional,  onSuccess, onFailure);
+    // }
 
     /**
      * Version supporting void operations.
      */
 
     public static void bincaseVoid(
-        Object conditional,
+        BooleanSupplier conditional,
         VoidCallable onSuccess,
         VoidCallable onFailure
     ) {
-        boolean condResult = evaluateCondition(conditional);
-        fif_void(() -> condResult, onSuccess, onFailure);
+        fif_void(conditional, onSuccess, onFailure);
     }
 }

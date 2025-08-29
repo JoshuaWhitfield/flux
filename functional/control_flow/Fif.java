@@ -1,6 +1,7 @@
 package functional.control_flow;
 
 import functional.control_flow.Callables.*;
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 public class Fif {
@@ -12,7 +13,7 @@ public class Fif {
         Supplier<T> onTrue,
         Supplier<T> onFalse
     ) {
-        return condition.get() ? onTrue.get() : onFalse.get();
+        return condition.getAsBoolean() ? onTrue.get() : onFalse.get();
     }
 
     /**
@@ -24,7 +25,7 @@ public class Fif {
         VoidCallable onTrue,
         VoidCallable onFalse
     ) {
-        if (condition.get()) {
+        if (condition.getAsBoolean()) {
             onTrue.call();
         } else {
             onFalse.call();

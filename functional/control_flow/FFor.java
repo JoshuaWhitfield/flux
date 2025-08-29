@@ -1,7 +1,9 @@
 package functional.control_flow;
 
 import java.util.*;
+import java.util.function.BooleanSupplier;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import functional.models.IterEdge;
 import functional.models.IterNode;
@@ -42,9 +44,9 @@ public class FFor {
         );
         
         return Bincase.bincase(
-            end.get(),
-            () -> iterator.iterating(actionFn).tco_run(),
-            () -> history.get()
+            (BooleanSupplier) () -> { return end.get(); },
+            (Supplier<List<R>>) () -> iterator.iterating(actionFn).tco_run(),
+            (Supplier<List<R>>) () -> history.get()
         );
     }
 }
