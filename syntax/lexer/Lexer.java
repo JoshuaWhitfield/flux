@@ -64,6 +64,10 @@ public class Lexer {
         current_line = 0;
     }
 
+    public List<LexerToken> get_output() {
+        return output;
+    }
+
     public Optional<LexerToken> tokenize() {
         return FWhile.fwhile(
             () -> { return input.length() != 0; },
@@ -152,7 +156,7 @@ public class Lexer {
                                                         );
                                                         
                                                         add_token(new LexerToken("//", LexerType.COMMENT_START(), current_line));
-                                                        add_token(new LexerToken(StringUtils.slice(input, 2, char_count).toString(), LexerType.COMMENT(), current_line))
+                                                        add_token(new LexerToken(StringUtils.slice(input, 2, char_count).toString(), LexerType.COMMENT(), current_line));
                                                         consume_chars(char_count);
                                                         return true;
                                                     },
@@ -328,7 +332,7 @@ public class Lexer {
                                                                                                                                                                 elem = elemOpt.get();
                                                                                                                                                                 return true;
                                                                                                                                                             },  
-                                                                                                                                                            () -> { return true; } // will never run
+                                                                                                                                                            () -> { return false; } // will never run
                                                                                                                                                         );
                                                                                                                                                         
                                                                                                                                                         
@@ -363,7 +367,7 @@ public class Lexer {
                                                                                                                                                                         );
                                                                                                                                                                     },
                                                                                                                                                                     () -> {
-                                                                                                                                                                        add_token(LexerToken(elem.text, elem.type, current_line));
+                                                                                                                                                                        add_token(new LexerToken(elem.text, elem.type, current_line));
                                                                                                                                                                         consume_chars(2);
                                                                                                                                                                         matched_function = true;
                                                                                                                                                                         return matched_function;
@@ -375,6 +379,63 @@ public class Lexer {
                                                                                                                                                     },
                                                                                                                                                     -1, 
                                                                                                                                                     1
+                                                                                                                                                );
+
+                                                                                                                                                return Fif.fif(
+                                                                                                                                                    () -> { return matched_function; },
+                                                                                                                                                    () -> { return true; },
+                                                                                                                                                    () -> {
+                                                                                                                                                        boolean matched_identifier = false;
+                                                                                                                                                        FFor.ffor(
+                                                                                                                                                            ObjectCategories.IDENTIFIERS,
+                                                                                                                                                            (IterNode node) -> {
+                                                                                                                                                                Optional<IterEdge<T>> elemOpt = Extractor.extractEdge(node, "elem");
+                                                                                                                                                                IterEdge<T> elem;
+
+                                                                                                                                                                Fif.<Boolean>fif(
+                                                                                                                                                                    () -> { return elemOpt.isPresent(); },
+                                                                                                                                                                    () -> {
+                                                                                                                                                                        elem = elemOpt.get();
+                                                                                                                                                                        return true;
+                                                                                                                                                                    },
+                                                                                                                                                                    () -> { return false; } // will never run
+                                                                                                                                                                );
+
+                                                                                                                                                                return Bincase.bincase(
+                                                                                                                                                                    () -> { return StringUtils.slice(input, 0, elem.text.size()); },
+                                                                                                                                                                    () -> {
+                                                                                                                                                                        String after_identifier = StringUtils.slice(input, 0, elem.text.size()).toString();
+                                                                                                                                                                        Pattern ident_pattern = Pattern.compile("([A-Za-z_][a-zA-Z0-9_]*)");
+                                                                                                                                                                        Matcher matcher = ident_patter.matcher(input.toString());
+
+                                                                                                                                                                        return Fif.fif(
+                                                                                                                                                                            () -> { return matcher.find() && match.start() == 0; },
+                                                                                                                                                                            () -> {
+                                                                                                                                                                                String identifier = match.group(0);
+                                                                                                                                                                                add_token(new LexerToken(identifier, elem.type, current_line));
+                                                                                                                                                                                
+                                                                                                                                                                                Integer total_matched = elem.text.size() + identifier.size();
+                                                                                                                                                                                consume_chars(total_matched);
+
+                                                                                                                                                                                matched_identifier = true;
+                                                                                                                                                                                return matched_identifier;
+                                                                                                                                                                            },
+                                                                                                                                                                            () -> { return false; }
+                                                                                                                                                                        );
+                                                                                                                                                                    },
+                                                                                                                                                                    () -> { return false; }
+                                                                                                                                                                );
+                                                                                                                                                            },
+                                                                                                                                                            -1,
+                                                                                                                                                            1
+                                                                                                                                                        );
+
+                                                                                                                                                        return Fif.fif(
+                                                                                                                                                            () -> { return matched_identifier; },
+                                                                                                                                                            () -> { return true; },
+                                                                                                                                                            () -> { return false; }
+                                                                                                                                                        );
+                                                                                                                                                    }
                                                                                                                                                 );
                                                                                                                                             }
                                                                                                                                         );
