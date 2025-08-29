@@ -1,18 +1,26 @@
 package functional.iterators;
 
 import java.util.*;
-import java.util.function.Function;
 import functional.models.IterNode;
 import functional.models.IterEdge;
 import functional.models.TailCall;
 
-public class FIterator<T, R> {
+public class FIterator<T> {
+
+    /**
+     * Functional interface for iterating over a node and producing a value of type T.
+     */
+    @FunctionalInterface
+    public interface IterAction<T> {
+        T apply(IterNode node);
+    }
+
     private final IterNode node;
     private final IterEdge<Integer> index;
     private final IterEdge<Optional<T>> elem;
     private final IterEdge<Integer> interval;
     private final IterEdge<List<T>> body;
-    private final IterEdge<List<R>> history;
+    private final IterEdge<List<T>> history;
     private final IterEdge<Boolean> back;
     private final IterEdge<Boolean> end;
     private final IterEdge<Boolean> cont;
@@ -23,11 +31,10 @@ public class FIterator<T, R> {
         IterEdge<Optional<T>> elem,
         IterEdge<Integer> interval,
         IterEdge<List<T>> body,
-        IterEdge<List<R>> history,
+        IterEdge<List<T>> history,
         IterEdge<Boolean> back,
         IterEdge<Boolean> end,
         IterEdge<Boolean> cont
-
     ) {
         this.node = node;
         this.index = index;
@@ -40,7 +47,7 @@ public class FIterator<T, R> {
         this.cont = cont;
     }
 
-    private R iterationAction(Function<IterNode, R> actionFn) {
+    private T iterationAction(IterAction<T> actionFn) {
         return actionFn.apply(node);
     }
 
@@ -50,7 +57,6 @@ public class FIterator<T, R> {
             end.set(true);
             return false;
         }
-
         index.set(next);
         elem.set(Optional.ofNullable(body.get().get(index.get())));
         return true;
@@ -58,19 +64,18 @@ public class FIterator<T, R> {
 
     private boolean backtrack() {
         int prev = index.get() - interval.get();
-        if (prev > 0) {
+        if (prev < 0) {
             back.set(false);
             return false;
         }
-
         index.set(prev);
         elem.set(Optional.ofNullable(body.get().get(index.get())));
         back.set(false);
         return true;
     }
 
-    public TailCall<List<R>> iterating(Function<IterNode, R> actionFn) {
-        return new TailCall<List<R>>(() -> {
+    public TailCall<List<T>> iterating(IterAction<T> actionFn) {
+        return new TailCall<>(() -> {
             if (back.get()) {
                 return backtracking(actionFn).tco_run();
             }
@@ -80,7 +85,7 @@ public class FIterator<T, R> {
             boolean valid = iterate();
             if (!valid) return history.get();
 
-            List<R> _history = new ArrayList<>(history.get());
+            List<T> _history = new ArrayList<>(history.get());
             elem.get().ifPresent(e -> _history.add(iterationAction(actionFn)));
             history.set(_history);
 
@@ -88,19 +93,16 @@ public class FIterator<T, R> {
         });
     }
 
-    public TailCall<List<R>> backtracking(Function<IterNode, R> actionFn) {
-    return new TailCall<List<R>>(() -> {
-        boolean valid = backtrack();
-        if (!valid) return history.get();
+    public TailCall<List<T>> backtracking(IterAction<T> actionFn) {
+        return new TailCall<>(() -> {
+            boolean valid = backtrack();
+            if (!valid) return history.get();
 
-        List<R> _history = new ArrayList<>(history.get());
-        elem.get().ifPresent(e -> _history.add(iterationAction(actionFn)));
-        history.set(_history);
+            List<T> _history = new ArrayList<>(history.get());
+            elem.get().ifPresent(e -> _history.add(iterationAction(actionFn)));
+            history.set(_history);
 
-        // recursive call
-        TailCall<List<R>> recursiveCall = iterating(actionFn);
-        return recursiveCall.tco_run();
-    });
-}
-
+            return iterating(actionFn).tco_run();
+        });
+    }
 }

@@ -1,43 +1,61 @@
 package syntax.lexer;
 
-import java.util.function.BooleanSupplier;
-import java.util.function.Supplier;
-import java.util.Arrays;
-
-import functional.control_flow.Bincase;
-import functional.control_flow.FFor;
+import functional.controlFlow.Bincase;
+import functional.controlFlow.Fif;
+import functional.controlFlow.FFor;
+import functional.controlFlow.FFltr;
+import syntax.tokens.LexerToken;
+import functional.models.Extractor;
 import functional.models.IterNode;
-import syntax.lexer.ObjectCategories.ObjectCategory;
-import syntax.tokens.headers.LexerToken;
 
-public class Operation {
-    
-    Boolean match_object(
-        ObjectCategory[] objects,
-        String input,
-        LexerToken[] output,
-        Integer current_line,
-        Runnable consume_chars
+import java.util.*;
+import java.util.function.Consumer;
+
+public final class Operation {
+    private Operation() {} // no instances
+
+    public static <T extends ObjectCategories.ObjectCategory> boolean matchObject(
+        List<T> objects,
+        StringBuilder input,
+        List<LexerToken> tokenOutput,
+        int currentLine,
+        Consumer<Integer> consumeChars
     ) {
-
         return Bincase.<Boolean>bincase(
-            (BooleanSupplier) () -> { return objects.length != 0; },
-            (Supplier<Boolean>) () -> {
-                Boolean results = FFor.<ObjectCategories.ObjectCategory, Boolean>ffor(
-                    Arrays.asList(objects), 
-                    (IterNode node) -> {
-                        return true;
+            () -> { return !objects.isEmpty(); },     // BooleanSupplier ✅
+            () -> {                       // Supplier<Boolean> ✅
+                List<T> results = FFor.<T>ffor(
+                    objects,
+                    node -> {
+                        Optional<T> elemOpt = Extractor.extractEdge(node, "elem");
+                        if (!elemOpt.isPresent()) return null;  // or elemOpt.get() depending on context
+
+                        T elem = elemOpt.get();
+
+                        if (input.length() < elem.text.length()) return null;
+                        if (!input.substring(0, elem.text.length()).equals(elem.text)) return null;
+
+                        // Perform side-effects here
+                        tokenOutput.add(new LexerToken(elem.text, elem.type, currentLine));
+                        consumeChars.accept(elem.text.length());
+
+                        return elem;  // return the element itself
                     },
                     -1,
                     1
                 );
-                return true;
+
+                List<T> filtered = FFltr.ffltr(
+                    results,
+                    (n, elem) -> elem != null ? elem : null, // <-- return T or null
+                    new IterNode()
+                );
+
+                return Fif.fif(() -> !filtered.isEmpty(), () -> true, () -> false);
             },
-            (Supplier<Boolean>) () -> { return true; }
+            () -> false                     // Supplier<Boolean> ✅
         );
 
 
-        return false;
     }
-
 }
