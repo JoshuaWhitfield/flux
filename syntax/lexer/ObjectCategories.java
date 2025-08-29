@@ -125,4 +125,14 @@ public class ObjectCategories {
         new ObjectCategory("true", BOOL()),      // true boolean
         new ObjectCategory("false", BOOL())      // false boolean
     );
+
+    public static final List<ObjectCategory> CONTAINERS = Arrays.asList(
+        new ObjectCategory("[", ARRAY_START()),      // array start
+        new ObjectCategory("]", ARRAY_END()),      // array end
+        new ObjectCategory("{", OBJ_START()),      // object start
+        new ObjectCategory("}", OBJ_END()),      // object end
+        new ObjectCategory("(", TUPLE_START()),      // tuple start
+        new ObjectCategory(")", TUPLE_END()),      // tuple end
+        new ObjectCategory(",", COMMA())      // comma
+    );
 }
